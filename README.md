@@ -508,6 +508,8 @@ cd "/path/to/AI-Drowsy-Driver-Detection" && ./start_cloudflare.sh
 3. **View History:** Review past drowsiness events
 4. **Manage Contacts:** Add emergency contacts for SMS notifications
 
+*NOTE FOR ADMIN – Use the only one `DrowsyDet@gmail.com` account when applying settings so changes sync across all drivers.*
+
 ### Understanding Detection Metrics
 
 - **EAR (Eye Aspect Ratio):** Measures vertical vs horizontal eye distance. Normal: ~0.25-0.30. Alert: <0.23
