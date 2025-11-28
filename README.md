@@ -666,8 +666,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 👥 Authors
 
-- **Mark Joseph Recosana** - *Initial work & Development*
-- **Bacheese Reeves** - *Co-developer & Testing*
+- **Fernando Jose Reeves** - *Lead development & testing*
+- **Mark Joseph Recosana** - *Secondary development & implementation*
 
 ---
 
