@@ -2,7 +2,7 @@
 
 🎬 **Watch the full system demo:** [AI Drowsy Driver Detection Demo](https://youtu.be/if3djOvKyb4)
 
-**Mark Joseph Recosana & Fernando Jose Reeves | BSIT 3E**
+**Mark Joseph Recosana & Fernando Jose Reeves | BSIT**
 
 An intelligent real-time drowsiness detection system designed to prevent road accidents by monitoring driver alertness using computer vision and facial landmark analysis. The system detects early signs of drowsiness through multiple metrics and provides immediate alerts through visual, audio, and IoT-based notifications.
 
