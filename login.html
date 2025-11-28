@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Login - AI Driver Safety</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+</head>
+
+<body
+    class="bg-gradient-to-br from-slate-900 via-orange-900 to-slate-900 text-slate-900 min-h-screen flex items-center justify-center relative overflow-hidden">
+    <!-- Animated background elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-20 left-10 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute bottom-20 right-10 w-96 h-96 bg-red-500/10 rounded-full blur-3xl animate-pulse"
+            style="animation-delay: 1s;"></div>
+    </div>
+
+    <div
+        class="w-full max-w-md bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 relative z-10 border border-white/20">
+        <!-- Admin Badge -->
+
+        <div class="text-center mb-6">
+            <h1
+                class="text-3xl font-extrabold mb-2 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                Login</h1>
+            <p class="text-gray-600 text-sm">AI Driver Safety System</p>
+        </div>
+
+        <!-- Role Selection -->
+        <div class="mb-6">
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" id="roleAdmin"
+                    class="p-3 border-2 border-orange-600 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition font-semibold">
+                    Admin Panel
+                </button>
+                <button type="button" id="roleDriver"
+                    class="p-3 border-2 border-gray-300 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition font-semibold">
+                    Driver Dashboard
+                </button>
+            </div>
+            <input type="hidden" id="selectedRole" value="admin" />
+        </div>
+
+        <form id="adminLoginForm" class="space-y-5">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="ph ph-user-circle"></i> Email
+                </label>
+                <input id="adminLoginEmail" type="email" required placeholder="your-email@example.com"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition" />
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <i class="ph ph-lock-key"></i> Password
+                </label>
+                <div class="relative">
+                    <input id="adminLoginPassword" type="password" required placeholder="Enter your password"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition" />
+                    <button id="toggleAdminPassword" type="button"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 p-1 rounded-md hover:bg-gray-100 transition">
+                        <i class="ph ph-eye text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between text-sm">
+                <label class="inline-flex items-center gap-2 cursor-pointer">
+                    <input id="rememberMe" type="checkbox" class="accent-orange-600 w-4 h-4" />
+                    <span class="text-gray-600">Remember Me</span>
+                </label>
+            </div>
+            <button type="submit"
+                class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-red-600 text-white font-bold py-3 rounded-lg hover:from-orange-700 hover:to-red-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="ph ph-sign-in"></i>
+                <span id="loginBtnText">Login</span>
+            </button>
+        </form>
+
+        <!-- Alternative actions -->
+        <div class="mt-6 pt-6 border-t border-gray-200 text-center">
+            <p class="text-xs text-gray-500">
+                Don't have an account?
+            </p>
+            <a href="register.html"
+                class="inline-block mt-2 text-sm text-orange-600 hover:text-orange-700 font-medium hover:underline">
+                <i class="ph ph-user-plus"></i> Register Now
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Role selection functionality
+        const roleAdmin = document.getElementById('roleAdmin');
+        const roleDriver = document.getElementById('roleDriver');
+        const selectedRoleInput = document.getElementById('selectedRole');
+        const loginBtnText = document.getElementById('loginBtnText');
+
+        function updateRoleSelection(role) {
+            selectedRoleInput.value = role;
+
+            if (role === 'admin') {
+                roleAdmin.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+                roleAdmin.classList.add('bg-orange-600', 'text-white', 'border-orange-600');
+                roleDriver.classList.remove('bg-orange-600', 'text-white', 'border-orange-600');
+                roleDriver.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+                if (loginBtnText) loginBtnText.textContent = 'Login as Admin';
+            } else {
+                roleDriver.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+                roleDriver.classList.add('bg-orange-600', 'text-white', 'border-orange-600');
+                roleAdmin.classList.remove('bg-orange-600', 'text-white', 'border-orange-600');
+                roleAdmin.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+                if (loginBtnText) loginBtnText.textContent = 'Login as Driver';
+            }
+        }
+
+        roleAdmin?.addEventListener('click', () => updateRoleSelection('admin'));
+        roleDriver?.addEventListener('click', () => updateRoleSelection('driver'));
+
+        // Password toggle functionality
+        const toggleAdminPassword = document.getElementById('toggleAdminPassword');
+        const adminLoginPassword = document.getElementById('adminLoginPassword');
+
+        if (toggleAdminPassword && adminLoginPassword) {
+            toggleAdminPassword.addEventListener('click', () => {
+                const type = adminLoginPassword.type === 'password' ? 'text' : 'password';
+                adminLoginPassword.type = type;
+                const icon = toggleAdminPassword.querySelector('i');
+                icon.className = type === 'password' ? 'ph ph-eye text-xl' : 'ph ph-eye-slash text-xl';
+            });
+        }
+
+        // Admin login form handler
+        const adminLoginForm = document.getElementById('adminLoginForm');
+        if (adminLoginForm) {
+            adminLoginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const email = document.getElementById('adminLoginEmail')?.value?.trim();
+                const password = document.getElementById('adminLoginPassword')?.value;
+                const submitBtn = adminLoginForm.querySelector('button[type="submit"]');
+
+                if (!email || !password) {
+                    alert('Please enter both email and password');
+                    return;
+                }
+
+                // Disable button during login
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="ph ph-spinner animate-spin"></i> <span>Logging in...</span>';
+                }
+
+                try {
+                    const response = await fetch('/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    const result = await response.json();
+
+                    if (!result.ok) {
+                        throw new Error(result.error || 'Login failed');
+                    }
+
+                    // Store auth data
+                    localStorage.setItem('token', result.token);
+                    localStorage.setItem('email', result.email);
+                    localStorage.setItem('role', result.role);
+
+                    // Show success message
+                    if (submitBtn) {
+                        submitBtn.innerHTML = '<i class="ph ph-check-circle"></i> <span>Login Successful!</span>';
+                        submitBtn.classList.replace('from-orange-600', 'from-green-600');
+                        submitBtn.classList.replace('to-indigo-600', 'to-green-600');
+                    }
+
+                    // Get selected role
+                    const selectedRole = document.getElementById('selectedRole')?.value || 'admin';
+
+                    // Redirect based on selected role
+                    setTimeout(() => {
+                        if (selectedRole === 'driver') {
+                            window.location.href = 'driver.html';
+                        } else {
+                            window.location.href = 'admin.html';
+                        }
+                    }, 500);
+
+                } catch (error) {
+                    alert(error.message || 'Login failed. Please check your credentials.');
+
+                    // Re-enable button
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        const selectedRole = document.getElementById('selectedRole')?.value || 'admin';
+                        const btnText = selectedRole === 'admin' ? 'Login as Admin' : 'Login as Driver';
+                        submitBtn.innerHTML = '<i class="ph ph-sign-in"></i> <span>' + btnText + '</span>';
+                    }
+                }
+            });
+        }
+
+        // Check if already logged in
+        (function checkExistingAuth() {
+            try {
+                const token = localStorage.getItem('token');
+                const role = (localStorage.getItem('role') || '').toLowerCase();
+
+                if (token) {
+                    // Already logged in, redirect to appropriate panel
+                    if (role === 'admin') {
+                        window.location.replace('admin.html');
+                    } else {
+                        window.location.replace('driver.html');
+                    }
+                }
+            } catch (e) {
+                // Ignore errors
+            }
+        })();
+    </script>
+</body>
+
+</html>

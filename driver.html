@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Driver Safety - Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+  <script>
+    // Auth guard - allow both admin and driver (and legacy 'user' role)
+    (function () {
+      try {
+        const token = localStorage.getItem('token');
+        const role = (localStorage.getItem('role') || 'driver').toLowerCase();
+
+        if (!token) {
+          // Redirect immediately without alert
+          window.location.replace('login.html');
+          return;
+        }
+
+        // Admin, driver, and user roles can access this page
+        if (role !== 'admin' && role !== 'driver' && role !== 'user') {
+          // Redirect first, then show alert
+          alert('Access denied. Please login as admin or driver.');
+          window.location.replace('login.html');
+          return;
+        }
+      } catch (e) {
+        window.location.replace('login.html');
+      }
+    })();
+  </script>
+</head>
+
+<body class="bg-gray-50 text-slate-900 min-h-screen flex flex-col font-sans page-fade-in">
+  <!-- Header -->
+  <header class="flex items-center justify-between bg-white px-6 py-3 shadow-sm sticky top-0 z-20">
+    <div class="flex items-center space-x-3 relative">
+      <button id="adminHamburgerBtn" aria-label="Open menu"
+        class="mr-2 p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-400">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+      <div
+        class="flex items-center justify-center w-10 h-10 bg-gray-200 rounded-md font-semibold text-gray-500 select-none">
+        AI</div>
+      <div class="leading-tight">
+        <h1 class="font-bold text-orange-600 text-lg md:text-xl">AI Driver Safety</h1>
+        <p class="text-xs text-gray-400">Drowsy Detection System</p>
+      </div>
+      <div id="adminHamburgerMenu"
+        class="hidden absolute left-0 top-12 w-44 bg-white border border-gray-200 rounded-md shadow-lg z-30">
+        <a href="driver.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Dashboard</a>
+        <a href="history.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">View History</a>
+        <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Settings</a>
+        <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+          onclick="try{localStorage.removeItem('token');localStorage.removeItem('email');localStorage.removeItem('role');}catch(e){} window.location.href='login.html'; return false;">Logout</button>
+      </div>
+    </div>
+
+    <!-- Top nav removed to avoid duplication with sidebar -->
+
+    <div class="flex items-center space-x-5">
+      <div class="flex items-center space-x-2 text-green-500 font-medium select-none">
+        <span class="font-bold">System Online</span>
+        <span class="pulse-green block w-3 h-3 rounded-full"></span>
+        <span class="live-indicator ml-2"></span>
+      </div>
+      <button aria-label="User profile" title="User profile"
+        class="bg-orange-600 text-white w-10 h-10 rounded-full font-semibold select-none focus:outline-none focus:ring-2 focus:ring-orange-400"><span
+          id="userAvatarInitial">A</span></button>
+      <button id="logoutBtn" class="text-sm text-gray-600 hover:text-red-600">Logout</button>
+    </div>
+  </header>
+
+  <!-- Main content grid -->
+  <main class="flex flex-1 bg-gray-50 overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 overflow-y-auto">
+      <div class="px-6 py-6 sticky top-0 bg-white z-10 border-b border-gray-100">
+        <button id="sidebarCollapseBtn" aria-label="Toggle navigation"
+          class="block md:hidden text-gray-600 hover:text-orange-600 focus:outline-none">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        <p class="font-bold text-slate-700 mb-1">Navigation</p>
+        <p class="text-xs text-gray-400 mb-4">System controls</p>
+
+
+      </div>
+
+
+    </aside>
+
+    <!-- Responsive Sidebar for smaller screens -->
+    <div id="sidebarMobile"
+      class="fixed inset-y-0 left-0 bg-white w-64 border-r border-gray-200 z-30 transform -translate-x-full transition-transform duration-200 ease-in-out md:hidden overflow-y-auto">
+      <div class="px-6 py-6 border-b border-gray-100 sticky top-0 bg-white z-10 flex justify-between items-center">
+        <p class="font-bold text-slate-700 mb-0">Navigation</p>
+        <button id="sidebarCloseBtn" aria-label="Close navigation"
+          class="text-gray-600 hover:text-orange-600 focus:outline-none">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+
+
+    </div>
+
+    <!-- Content Area -->
+    <section class="flex-1 p-6 overflow-y-auto max-h-screen">
+      <nav class="text-sm mb-6 text-gray-500 select-none" aria-label="breadcrumb">
+        <ol class="list-reset flex space-x-1">
+          <li><a href="#" class="hover:text-orange-600 breadcrumb-item">Dashboard</a></li>
+          <li>/</li>
+          <li class="text-gray-700 font-semibold breadcrumb-item">Dashboard</li>
+        </ol>
+      </nav>
+
+      <h2 class="text-2xl font-extrabold text-slate-900 mb-1 select-none">Driver Monitoring Dashboard</h2>
+      <p class="text-sm text-gray-500 mb-6 select-none">Real-time drowsy driver detection and monitoring system</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="md:col-span-2 space-y-6">
+          <!-- Monitoring Controls -->
+          <section class="bg-white rounded-lg shadow-sm p-5 border border-gray-100 select-none card-enter glass-card">
+            <div class="flex items-center mb-3 text-orange-600 space-x-2 font-semibold text-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 shrink-0" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M14.752 11.168l-6.814 3.905A.75.75 0 017 14.256v-7.5a.75.75 0 011.127-.66l6.814 3.905a.75.75 0 010 1.296z" />
+              </svg>
+              <span>Monitoring Controls</span>
+            </div>
+            <div class="flex justify-center">
+              <button id="startMonitoringBtn"
+                class="bg-orange-600 text-white font-bold px-6 py-3 rounded-md shadow hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-400 inline-flex items-center space-x-2 transition monitor-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path
+                    d="M14.752 11.168l-6.814 3.905A.75.75 0 017 14.256v-7.5a.75.75 0 011.127-.66l6.814 3.905a.75.75 0 010 1.296z" />
+                </svg>
+                <span>Start Monitoring</span>
+              </button>
+            </div>
+          </section>
+
+          <!-- Live Driver Camera Feed -->
+          <section class="bg-white rounded-lg shadow-sm p-5 border border-gray-100 select-none card-enter glass-card">
+            <div class="flex items-center mb-3 text-orange-600 space-x-2 font-semibold text-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 shrink-0" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M15 10l4.553-2.276A2 2 0 0122 9.618v4.764a2 2 0 01-2.447 1.895L15 14M10 14l-4.553 2.276A2 2 0 014 14.382v-4.764a2 2 0 012.447-1.895L10 10z" />
+              </svg>
+              <span>Live Driver Camera Feed</span>
+            </div>
+            <div
+              class="relative rounded-md overflow-hidden border border-gray-300 bg-gray-900 aspect-video flex items-center justify-center text-gray-500 font-semibold text-xl video-container">
+              <img id="videoFeed" alt="Driver Camera Feed" class="w-full h-full object-cover" style="display: none;" loading="eager" decoding="async" />
+              <video id="browserCam" class="hidden absolute inset-0 w-full h-full object-cover" autoplay playsinline
+                muted></video>
+              <!-- Idle placeholder -->
+              <div id="videoPlaceholder"
+                class="absolute inset-0 flex items-center justify-center text-center p-6 pointer-events-none">
+                <div class="max-w-md">
+                  <div
+                    class="mx-auto w-16 h-16 rounded-full bg-white/70 text-orange-600 flex items-center justify-center mb-3">
+                    <i class="ph ph-video-camera text-3xl"></i>
+                  </div>
+                  <div class="font-bold text-slate-700 mb-1">Monitoring is idle</div>
+                  <p class="text-sm text-gray-600">Click <span class="font-semibold">Start Monitoring</span> to begin
+                    real‑time detection, or preview with <span class="font-semibold">Use Browser Cam</span>.</p>
+                  <div class="mt-3 text-xs text-gray-500">Tip: good lighting and a centered face improve detection.
+                  </div>
+                </div>
+              </div>
+              <div class="absolute bottom-3 right-3 timestamp-badge" id="cameraTimestamp">--:--:--</div>
+              <div class="absolute top-3 left-3 hidden" id="browserCamProcessingIndicator">
+                <div
+                  class="px-3 py-1 text-xs rounded-full bg-orange-600/90 text-white backdrop-blur-sm inline-flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                  <span>Processing Frames</span>
+                </div>
+              </div>
+              <div class="absolute top-3 right-3 flex gap-2">
+                <select id="browserCamSelect" class="px-2 py-1 text-xs rounded bg-gray-800/70 text-white"></select>
+                <button id="toggleBrowserCam" class="px-2 py-1 text-xs rounded bg-gray-800/70 text-white">Use Browser
+                  Cam</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Live Metrics -->
+          <section class="bg-white rounded-lg shadow-sm p-5 border border-gray-100 select-none card-enter glass-card">
+            <div class="flex items-center mb-3 text-orange-600 space-x-2 font-semibold text-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 shrink-0" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 3v18h18" />
+              </svg>
+              <span>Live Detection Metrics</span>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div
+                class="p-3 rounded border border-gray-100 bg-gray-50 metric-card hover:shadow-md transition relative">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="flex items-center gap-1">
+                    <div class="text-gray-500">EAR</div>
+                    <div class="group relative">
+                      <i class="ph ph-info text-xs text-gray-400 cursor-help" title="Eye Aspect Ratio - Measures how open your eyes are. Lower values indicate closed or half-closed eyes."></i>
+                      <div class="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-gray-900 text-white text-xs rounded-lg p-2 z-50 pointer-events-none">
+                        <div class="font-semibold mb-1">Eye Aspect Ratio (EAR)</div>
+                        <div>Measures how open your eyes are. Lower values indicate closed or half-closed eyes, which may signal drowsiness.</div>
+                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                          <div class="border-4 border-transparent border-t-gray-900"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <i class="ph ph-clock text-xs text-gray-400" title="Last updated"></i>
+                </div>
+                <div id="metricEAR" class="font-bold text-slate-800 text-lg mb-1">--</div>
+                <div id="metricEARTime" class="text-xs text-gray-500 mb-1">--</div>
+                <!-- Threshold Progress Bar -->
+                <div class="mt-2">
+                  <div class="flex items-center justify-end mb-1">
+                    <span id="metricEARThreshold" class="text-xs font-semibold text-gray-700">--</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div id="metricEARProgress" class="bg-orange-600 h-1.5 rounded-full transition-all duration-300"
+                      style="width: 0%"></div>
+                  </div>
+                  <div id="metricEARProgressText" class="text-xs text-gray-600 mt-0.5">--</div>
+                </div>
+              </div>
+              <div
+                class="p-3 rounded border border-gray-100 bg-gray-50 metric-card hover:shadow-md transition relative">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="flex items-center gap-1">
+                    <div class="text-gray-500">MAR</div>
+                    <div class="group relative">
+                      <i class="ph ph-info text-xs text-gray-400 cursor-help" title="Mouth Aspect Ratio - Detects yawning. Higher values indicate an open mouth, which is a sign of drowsiness."></i>
+                      <div class="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-gray-900 text-white text-xs rounded-lg p-2 z-50 pointer-events-none">
+                        <div class="font-semibold mb-1">Mouth Aspect Ratio (MAR)</div>
+                        <div>Detects yawning by measuring how wide your mouth is open. Higher values indicate yawning, which is a common sign of drowsiness or fatigue.</div>
+                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                          <div class="border-4 border-transparent border-t-gray-900"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <i class="ph ph-clock text-xs text-gray-400" title="Last updated"></i>
+                </div>
+                <div id="metricMAR" class="font-bold text-slate-800 text-lg mb-1">--</div>
+                <div id="metricMARTime" class="text-xs text-gray-500 mb-1">--</div>
+                <!-- Threshold Progress Bar -->
+                <div class="mt-2">
+                  <div class="flex items-center justify-end mb-1">
+                    <span id="metricMARThreshold" class="text-xs font-semibold text-gray-700">--</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div id="metricMARProgress" class="bg-orange-600 h-1.5 rounded-full transition-all duration-300"
+                      style="width: 0%"></div>
+                  </div>
+                  <div id="metricMARProgressText" class="text-xs text-gray-600 mt-0.5">--</div>
+                </div>
+              </div>
+              <div
+                class="p-3 rounded border border-gray-100 bg-gray-50 metric-card hover:shadow-md transition relative">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="flex items-center gap-1">
+                    <div class="text-gray-500">Head Tilt</div>
+                    <div class="group relative">
+                      <i class="ph ph-info text-xs text-gray-400 cursor-help" title="Head Tilt - Detects if your head is tilted. Excessive tilting may indicate drowsiness or loss of alertness."></i>
+                      <div class="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-gray-900 text-white text-xs rounded-lg p-2 z-50 pointer-events-none">
+                        <div class="font-semibold mb-1">Head Tilt</div>
+                        <div>Measures the angle of your head position. Excessive tilting (forward, backward, or sideways) may indicate drowsiness or loss of alertness.</div>
+                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                          <div class="border-4 border-transparent border-t-gray-900"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <i class="ph ph-clock text-xs text-gray-400" title="Last updated"></i>
+                </div>
+                <div id="metricTilt" class="font-bold text-slate-800 text-lg mb-1">--</div>
+                <div id="metricTiltTime" class="text-xs text-gray-500 mb-1">--</div>
+                <!-- Threshold Progress Bar -->
+                <div class="mt-2">
+                  <div class="flex items-center justify-end mb-1">
+                    <span id="metricTiltThreshold" class="text-xs font-semibold text-gray-700">--</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div id="metricTiltProgress" class="bg-orange-600 h-1.5 rounded-full transition-all duration-300"
+                      style="width: 0%"></div>
+                  </div>
+                  <div id="metricTiltProgressText" class="text-xs text-gray-600 mt-0.5">--</div>
+                </div>
+              </div>
+              <div
+                class="p-3 rounded border border-gray-100 bg-gray-50 metric-card hover:shadow-md transition relative">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="flex items-center gap-1">
+                    <div class="text-gray-500">PERCLOS</div>
+                    <div class="group relative">
+                      <i class="ph ph-info text-xs text-gray-400 cursor-help" title="PERCLOS (Percentage of Eyelid Closure) - Measures how long your eyes are closed over time. Higher percentages indicate prolonged eye closure."></i>
+                      <div class="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-gray-900 text-white text-xs rounded-lg p-2 z-50 pointer-events-none">
+                        <div class="font-semibold mb-1">PERCLOS</div>
+                        <div>Percentage of Eyelid Closure - Measures how long your eyes are closed over a period of time. Higher percentages indicate prolonged eye closure, which is a strong indicator of drowsiness or microsleep.</div>
+                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                          <div class="border-4 border-transparent border-t-gray-900"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <i class="ph ph-clock text-xs text-gray-400" title="Last updated"></i>
+                </div>
+                <div id="metricPerclos" class="font-bold text-slate-800 text-lg mb-1">--</div>
+                <div id="metricPerclosTime" class="text-xs text-gray-500 mb-1">--</div>
+                <!-- Threshold Progress Bar -->
+                <div class="mt-2">
+                  <div class="flex items-center justify-end mb-1">
+                    <span id="metricPerclosThreshold" class="text-xs font-semibold text-gray-700">--</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div id="metricPerclosProgress" class="bg-orange-600 h-1.5 rounded-full transition-all duration-300"
+                      style="width: 0%"></div>
+                  </div>
+                  <div id="metricPerclosProgressText" class="text-xs text-gray-600 mt-0.5">--</div>
+                </div>
+              </div>
+            </div>
+            <!-- Info Banner about False Alarm Prevention -->
+            <div class="mt-4 bg-orange-50 border-l-4 border-orange-500 p-3 rounded">
+              <div class="flex items-start gap-2 text-sm">
+                <i class="ph ph-info text-orange-600 mt-0.5"></i>
+                <div>
+                  <div class="font-semibold text-orange-800 mb-1">False Alarm Prevention</div>
+                  <p class="text-orange-700 text-xs">Each metric must remain in an alert state for the configured
+                    duration
+                    before triggering an alert. This prevents false alarms from brief moments of drowsiness. The
+                    progress bars above show how close each metric is to triggering an alert.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="space-y-6">
+          <section
+            class="bg-white rounded-lg shadow-sm p-5 border border-gray-100 select-none flex flex-col items-center text-center card-enter glass-card">
+            <div class="text-green-600 font-semibold text-sm mb-3 select-none">Driver Status</div>
+            <div id="driverStatusIconWrap"
+              class="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-3 border border-green-300 shrink-0 status-alert">
+              <i id="driverStatusIcon" class="ph ph-check-circle text-green-600 text-4xl leading-none"></i>
+            </div>
+            <div id="driverStatusState" class="text-xl font-extrabold text-green-600 mb-1 select-none">Alert</div>
+            <div id="driverStatusMessage" class="text-gray-500 text-sm mb-2 select-none">Driver is alert and focused
+            </div>
+            <div class="text-gray-400 text-xs select-none" id="driverStatusUpdated">Last updated: --:--:--</div>
+          </section>
+
+        </div>
+      </div>
+
+      <!-- Nearby Rest Stops -->
+      <section class="mt-8 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div class="mb-4 flex items-center justify-between">
+          <div>
+            <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <i class="ph ph-map-pin text-orange-600 text-2xl"></i>
+              Nearby Rest Stops
+            </h3>
+            <p class="text-sm text-gray-600 mt-1">Find safe places to rest and recharge</p>
+          </div>
+          <button id="refreshLocationsBtn"
+            class="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition text-sm inline-flex items-center gap-2">
+            <i class="ph ph-arrows-clockwise"></i>
+            Refresh
+          </button>
+        </div>
+
+        <!-- Location Access Banner -->
+        <div id="locationBanner" class="mb-4 bg-orange-50 border-l-4 border-orange-500 p-3 rounded hidden">
+          <div class="flex items-center gap-2 text-sm">
+            <i class="ph ph-info text-orange-600"></i>
+            <span class="text-orange-800">Enable location access to find nearby rest stops</span>
+            <button id="enableLocationBtn"
+              class="ml-auto px-3 py-1 bg-orange-600 text-white rounded text-xs font-semibold hover:bg-orange-700">
+              Enable
+            </button>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="locationsLoading" class="text-center py-8 hidden">
+          <i class="ph ph-spinner text-4xl text-orange-600 mb-3 animate-spin"></i>
+          <p class="text-gray-600 text-sm">Finding nearby locations...</p>
+        </div>
+
+        <!-- Rest Stops List -->
+        <div id="restStopsList" class="space-y-3">
+          <!-- Rest stops will be inserted here dynamically -->
+          <div class="text-center py-8 text-gray-400">
+            <i class="ph ph-map-trifold text-4xl mb-3"></i>
+            <p class="text-sm">Click "Refresh" to find nearby rest stops</p>
+          </div>
+        </div>
+
+        <!-- Map View Toggle -->
+        <div class="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+          <div class="text-xs text-gray-500">
+            <i class="ph ph-crosshair mr-1"></i>
+            <span id="userLocation">Location: Not detected</span>
+          </div>
+          <button id="openMapViewBtn"
+            class="px-3 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition text-sm font-semibold inline-flex items-center gap-2">
+            <i class="ph ph-map-trifold"></i>
+            Open in Maps
+          </button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+
+
+  <!-- Drowsiness Alert Overlay -->
+  <div id="alertOverlay" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-40 alert-overlay">
+    <div
+      class="bg-white md:rounded-2xl md:shadow-2xl md:max-w-2xl w-full h-full md:h-auto md:w-11/12 p-8 md:border-2 md:border-red-600 text-center flex flex-col items-center justify-center alert-modal">
+      <div
+        class="mx-auto w-32 h-32 md:w-28 md:h-28 rounded-full bg-red-100 text-red-700 flex items-center justify-center mb-6 md:mb-5 shrink-0 leading-none">
+        <i class="ph ph-warning-octagon text-[88px] md:text-[72px] leading-none"></i>
+      </div>
+      <h3 class="text-4xl md:text-3xl font-extrabold text-red-700 mb-4 md:mb-3">Drowsiness Detected</h3>
+      <p id="alertReason" class="text-gray-700 md:text-gray-600 mb-2 text-xl md:text-lg px-3">Stay alert. Please
+        take a break.</p>
+      <p id="alertStatusInfo" class="text-xs text-gray-500 mb-8 md:mb-5 px-3"></p>
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-center gap-4 w-full max-w-md">
+        <button id="ackAlertBtn"
+          class="w-full md:w-auto px-8 py-5 md:py-3 rounded-xl bg-red-600 text-white hover:bg-red-700 text-xl md:text-lg monitor-btn">Acknowledge</button>
+        <a id="openMapsBtn" href="#" target="_blank"
+          class="w-full md:w-auto px-8 py-5 md:py-3 rounded-xl bg-gray-900 text-white hover:bg-black text-xl md:text-lg hidden monitor-btn">Open
+          Location</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // Hamburger menu handler
+    (function () {
+      const btn = document.getElementById('adminHamburgerBtn');
+      const menu = document.getElementById('adminHamburgerMenu');
+      btn?.addEventListener('click', (e) => { e.stopPropagation(); menu?.classList.toggle('hidden'); });
+      document.addEventListener('click', (e) => {
+        if (!menu || menu.classList.contains('hidden')) return;
+        const t = e.target;
+        if (!(t instanceof Element)) { menu.classList.add('hidden'); return; }
+        if (!menu.contains(t) && t !== btn) menu.classList.add('hidden');
+      });
+    })();
+
+    // Enhanced status indicator - dynamically update CSS classes
+    (function () {
+      const statusWrap = document.getElementById('driverStatusIconWrap');
+      const statusIcon = document.getElementById('driverStatusIcon');
+      const statusState = document.getElementById('driverStatusState');
+      const statusMessage = document.getElementById('driverStatusMessage');
+
+      // Create a MutationObserver to watch for status changes
+      if (statusState && statusWrap) {
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'childList' || mutation.type === 'characterData') {
+              const statusText = statusState.textContent?.toLowerCase() || '';
+
+              // Remove all status classes first
+              statusWrap.classList.remove('status-alert', 'status-drowsy');
+
+              // Apply appropriate class based on status
+              if (statusText.includes('drowsy') || statusText.includes('warn') || statusText.includes('danger')) {
+                statusWrap.classList.add('status-drowsy');
+                statusWrap.classList.remove('bg-green-100', 'border-green-300');
+                statusWrap.classList.add('bg-red-100', 'border-red-300');
+              } else {
+                statusWrap.classList.add('status-alert');
+                statusWrap.classList.remove('bg-red-100', 'border-red-300');
+                statusWrap.classList.add('bg-green-100', 'border-green-300');
+              }
+            }
+          });
+        });
+
+        // Observe changes to the status text
+        observer.observe(statusState, {
+          childList: true,
+          characterData: true,
+          subtree: true
+        });
+      }
+
+      // Add loading state to monitoring button
+      const monitorBtn = document.getElementById('startMonitoringBtn');
+      if (monitorBtn) {
+        monitorBtn.addEventListener('click', function () {
+          this.classList.add('btn-loading');
+          setTimeout(() => {
+            this.classList.remove('btn-loading');
+          }, 2000);
+        });
+      }
+    })();
+
+
+    // ==================== NEARBY REST STOPS FEATURE ====================
+    (function () {
+      let userLatitude = null;
+      let userLongitude = null;
+
+      // Request location permission
+      function requestLocation() {
+        if ('geolocation' in navigator) {
+          document.getElementById('locationsLoading').classList.remove('hidden');
+          document.getElementById('restStopsList').classList.add('hidden');
+
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              userLatitude = position.coords.latitude;
+              userLongitude = position.coords.longitude;
+              document.getElementById('locationBanner').classList.add('hidden');
+              document.getElementById('userLocation').textContent =
+                `Location: ${userLatitude.toFixed(4)}, ${userLongitude.toFixed(4)}`;
+              findNearbyPlaces();
+            },
+            (error) => {
+              document.getElementById('locationsLoading').classList.add('hidden');
+              document.getElementById('restStopsList').classList.remove('hidden');
+              document.getElementById('locationBanner').classList.remove('hidden');
+              console.error('Location error:', error);
+            }
+          );
+        } else {
+          alert('Geolocation is not supported by your browser');
+        }
+      }
+
+      // Find nearby rest stops using Google Places API (mock data for now)
+      function findNearbyPlaces() {
+        // Simulating API call with mock data
+        setTimeout(() => {
+          const mockPlaces = [
+            {
+              name: 'Shell Gas Station & Rest Area',
+              type: 'Gas Station',
+              distance: '2.3 km',
+              address: '123 Highway St',
+              rating: 4.2,
+              isOpen: true,
+              amenities: ['Restrooms', 'Food', 'Fuel']
+            },
+            {
+              name: 'Highway Rest Stop',
+              type: 'Rest Area',
+              distance: '4.7 km',
+              address: 'Mile Marker 45',
+              rating: 3.8,
+              isOpen: true,
+              amenities: ['Restrooms', 'Parking', 'Vending']
+            },
+            {
+              name: 'Starbucks Coffee',
+              type: 'Cafe',
+              distance: '5.2 km',
+              address: '456 Main Road',
+              rating: 4.5,
+              isOpen: true,
+              amenities: ['WiFi', 'Food', 'Seating']
+            },
+            {
+              name: '76 Truck Stop',
+              type: 'Truck Stop',
+              distance: '7.8 km',
+              address: '789 Interstate Blvd',
+              rating: 4.0,
+              isOpen: true,
+              amenities: ['Showers', 'Food', 'Fuel', 'Parking']
+            },
+            {
+              name: 'Welcome Center',
+              type: 'Visitor Center',
+              distance: '12.5 km',
+              address: 'State Border',
+              rating: 4.3,
+              isOpen: false,
+              amenities: ['Restrooms', 'Info', 'Maps']
+            }
+          ];
+
+          renderRestStops(mockPlaces);
+          document.getElementById('locationsLoading').classList.add('hidden');
+          document.getElementById('restStopsList').classList.remove('hidden');
+        }, 1500);
+      }
+
+      // Render rest stops list
+      function renderRestStops(places) {
+        const container = document.getElementById('restStopsList');
+
+        if (places.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-8 text-gray-400">
+              <i class="ph ph-map-trifold text-4xl mb-3"></i>
+              <p class="text-sm">No nearby rest stops found</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = places.map((place, index) => {
+          const typeColors = {
+            'Gas Station': 'bg-orange-100 text-orange-700',
+            'Rest Area': 'bg-green-100 text-green-700',
+            'Cafe': 'bg-purple-100 text-purple-700',
+            'Truck Stop': 'bg-orange-100 text-orange-700',
+            'Visitor Center': 'bg-teal-100 text-teal-700'
+          };
+
+          return `
+            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition rest-stop-card">
+              <div class="flex items-start justify-between mb-2">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <h4 class="font-bold text-gray-800">${place.name}</h4>
+                    ${place.isOpen ?
+              '<span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">Open</span>' :
+              '<span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-semibold">Closed</span>'
+            }
+                  </div>
+                  <div class="flex items-center gap-2 text-xs text-gray-600 mb-2">
+                    <span class="px-2 py-0.5 rounded ${typeColors[place.type] || 'bg-gray-100 text-gray-700'}">${place.type}</span>
+                    <span class="flex items-center gap-1">
+                      <i class="ph ph-star-fill text-amber-500"></i>
+                      ${place.rating}
+                    </span>
+                  </div>
+                  <div class="text-xs text-gray-500 mb-2">
+                    <i class="ph ph-map-pin mr-1"></i>${place.address}
+                  </div>
+                  <div class="flex flex-wrap gap-1">
+                    ${place.amenities.map(amenity =>
+              `<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">${amenity}</span>`
+            ).join('')}
+                  </div>
+                </div>
+                <div class="text-right ml-4">
+                  <div class="text-lg font-bold text-orange-600">${place.distance}</div>
+                  <div class="text-xs text-gray-500">away</div>
+                </div>
+              </div>
+              <div class="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+                <button onclick="navigateToPlace('${place.name}', ${userLatitude}, ${userLongitude})" 
+                  class="flex-1 px-3 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition text-sm font-semibold inline-flex items-center justify-center gap-1">
+                  <i class="ph ph-navigation-arrow"></i>
+                  Navigate
+                </button>
+                <button onclick="sharePlace('${place.name}')" 
+                  class="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition text-sm">
+                  <i class="ph ph-share-network"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Navigate to place
+      window.navigateToPlace = function (name, lat, lng) {
+        if (lat && lng) {
+          // Open Google Maps with directions
+          const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${lat},${lng}&destination=${encodeURIComponent(name)}`;
+          window.open(mapsUrl, '_blank');
+        } else {
+          alert('Please enable location access first');
+        }
+      };
+
+      // Share place
+      window.sharePlace = function (name) {
+        if (navigator.share) {
+          navigator.share({
+            title: 'Rest Stop',
+            text: `Check out this rest stop: ${name}`,
+            url: window.location.href
+          });
+        } else {
+          alert(`Rest stop: ${name}`);
+        }
+      };
+
+      // Event listeners
+      document.getElementById('refreshLocationsBtn')?.addEventListener('click', requestLocation);
+      document.getElementById('enableLocationBtn')?.addEventListener('click', requestLocation);
+      document.getElementById('openMapViewBtn')?.addEventListener('click', () => {
+        if (userLatitude && userLongitude) {
+          const mapsUrl = `https://www.google.com/maps/search/rest+stops/@${userLatitude},${userLongitude},12z`;
+          window.open(mapsUrl, '_blank');
+        } else {
+          alert('Please enable location access first');
+        }
+      });
+    })();
+  </script>
+
+</body>
+
+</html>

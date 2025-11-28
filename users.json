@@ -1,0 +1,32 @@
+{
+  "drowsydet@gmail.com": {
+    "passwordHash": "scrypt:32768:8:1$Y0bv8sKjvYn9yuLO$608a2d00a49fe9fe298fd72438613a04b98fcaa22ae153f3ef5f9f61c4c81fc66a819ab6e699285343e6715d8d04bfc37025f1d0a4265c01e4a01cd34b087e0d",
+    "role": "admin"
+  },
+  "dreeves21@gmail.com": {
+    "passwordHash": "scrypt:32768:8:1$oBLFzTMy6GHLn5QI$c7a273f1e462a0054c196a3163156787acbff2e5c4817c5a0f77527ff52e8fbbcbd584891869df6008eb6b75d5eacec963c735cd7e88afc862b926f62a931855",
+    "role": "driver"
+  },
+  "mjrecosana06@gmail.com": {
+    "passwordHash": "scrypt:32768:8:1$MjlLdrIIBztavpFY$a6828664db182205969dc0be21a7cb41d729c6edd0e8d369fff01ef295ade829d32bed9ceb5750719e1bee1e51aa1bd27eed98c7b023c9cf91210e508d20a522",
+    "role": "driver"
+  },
+  "driver21@gmail.com": {
+    "passwordHash": "scrypt:32768:8:1$EHveo8v7xf0ygFEo$0ae15d0fd81f7f2c31edbb553fb32d9de0dfdaec5fbd6a50acd7ce7e85a984c49271dcebc170abe330a165952cb2b77a7169382e541f5951c3e714b7f4c1a345",
+    "role": "driver",
+    "license": {
+      "licenseNumber": "J07-21-550033",
+      "licenseState": "PH",
+      "expiryDate": "2028-04-12",
+      "verificationStatus": "pending",
+      "verifiedAt": null,
+      "verifiedBy": null,
+      "verificationNotes": null,
+      "name": "Fernando Jose E. Reeves",
+      "phoneNumber": "09072167250",
+      "registeredAt": "2025-11-21T08:33:24.493941Z",
+      "registeredFromIP": "127.0.0.1"
+    },
+    "name": "Fernando Jose E. Reeves"
+  }
+}

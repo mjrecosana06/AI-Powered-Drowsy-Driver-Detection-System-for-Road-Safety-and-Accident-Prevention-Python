@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Register - AI Driver Safety</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+</head>
+
+<body
+    class="bg-gradient-to-br from-slate-900 via-orange-900 to-slate-900 text-slate-900 min-h-screen flex items-center justify-center relative overflow-hidden p-4 md:p-6">
+    <!-- Animated background elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-20 left-10 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute bottom-20 right-10 w-96 h-96 bg-red-500/10 rounded-full blur-3xl animate-pulse"
+            style="animation-delay: 1s;"></div>
+    </div>
+
+    <div
+        class="w-full max-w-6xl bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 md:p-8 relative z-10 border border-white/20">
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1
+                class="text-2xl md:text-3xl font-extrabold mb-2 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                Register Driver Account</h1>
+            <p class="text-gray-600 text-sm">AI Driver Safety System</p>
+        </div>
+
+        <!-- Info Banner -->
+        <div class="mb-6 bg-orange-50 border-l-4 border-orange-500 p-3 md:p-4 rounded-lg">
+            <div class="flex items-start gap-3">
+                <i class="ph ph-info text-orange-600 text-xl flex-shrink-0"></i>
+                <div>
+                    <h3 class="text-sm font-semibold text-orange-900 mb-1">Driver Account Registration</h3>
+                    <p class="text-xs text-orange-700">
+                        Only driver accounts can be created through registration. Admin accounts are managed separately
+                        by the system administrator.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" id="selectedRole" value="driver" />
+
+        <form id="adminRegisterForm" class="space-y-4 md:space-y-6">
+            <!-- Account Information Section - Landscape Layout -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email <span
+                            class="text-red-500">*</span></label>
+                    <input id="adminRegEmail" type="email" required placeholder="your-email@example.com"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Name <span
+                            class="text-red-500">*</span></label>
+                    <input id="adminRegName" type="text" required placeholder="John Doe"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password <span
+                            class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <input id="adminRegPassword" type="password" required placeholder="Enter a password"
+                            minlength="8"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500" />
+                        <button id="togglePassword" type="button"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                            <i class="ph ph-eye text-lg"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Min. 8 characters</p>
+                </div>
+            </div>
+
+
+            <!-- Submit Button -->
+            <div class="pt-2">
+                <button type="submit"
+                    class="w-full md:w-auto md:min-w-[200px] bg-gradient-to-r from-orange-600 to-red-600 text-white font-bold py-3 px-8 rounded-lg hover:from-orange-700 hover:to-red-700 transition shadow-lg hover:shadow-xl">
+                    <span id="registerBtnText">Create Account</span>
+                </button>
+            </div>
+        </form>
+
+        <div class="mt-6 pt-6 border-t border-gray-200 text-center">
+            <p class="text-xs text-gray-500">
+                Already have an account?
+            </p>
+            <a href="login.html"
+                class="inline-block mt-2 text-sm text-orange-600 hover:text-orange-700 font-medium hover:underline">
+                <i class="ph ph-sign-in"></i> Login Now
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Role is fixed to 'driver' - admin registration is disabled
+        const selectedRoleInput = document.getElementById('selectedRole');
+        const registerBtnText = document.getElementById('registerBtnText');
+
+        // Password toggle
+        const togglePassword = document.getElementById('togglePassword');
+        const adminRegPassword = document.getElementById('adminRegPassword');
+
+        if (togglePassword && adminRegPassword) {
+            togglePassword.addEventListener('click', () => {
+                const type = adminRegPassword.type === 'password' ? 'text' : 'password';
+                adminRegPassword.type = type;
+                const icon = togglePassword.querySelector('i');
+                icon.className = type === 'password' ? 'ph ph-eye text-xl' : 'ph ph-eye-slash text-xl';
+            });
+        }
+
+        // Admin registration form
+        const adminRegisterForm = document.getElementById('adminRegisterForm');
+        adminRegisterForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('adminRegEmail').value.trim();
+            const name = document.getElementById('adminRegName').value.trim();
+            const password = document.getElementById('adminRegPassword').value;
+
+            if (!email || !name || !password) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            if (password.length < 8) {
+                alert('Password must be at least 8 characters long');
+                return;
+            }
+
+            // Role is always 'driver' - admin registration is disabled
+            const selectedRole = 'driver';
+
+            // Show loading state
+            const submitBtn = adminRegisterForm.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="ph ph-spinner animate-spin"></i> Registering...';
+
+            try {
+                const res = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email,
+                        password,
+                        name,
+                        role: selectedRole
+                    })
+                });
+                const data = await res.json();
+
+                if (!res.ok || !data.ok) {
+                    alert(data.error || 'Registration failed');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                    return;
+                }
+
+                // Show success message based on actual role returned
+                const actualRole = data.role || selectedRole;
+                if (actualRole === 'admin') {
+                    alert('Admin account created successfully! This is the first account and has been set as admin.');
+                } else {
+                    alert('Driver account created successfully! You can now log in.');
+                }
+                window.location.href = 'login.html';
+            } catch (err) {
+                alert('Registration failed. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        });
+
+        // Check if already logged in
+        (function () {
+            try {
+                const token = localStorage.getItem('token');
+                const role = (localStorage.getItem('role') || '').toLowerCase();
+                if (token) {
+                    if (role === 'admin') {
+                        if (confirm('You are already logged in. Go to admin panel?')) {
+                            window.location.replace('admin.html');
+                        }
+                    } else {
+                        if (confirm('You are already logged in. Go to driver dashboard?')) {
+                            window.location.replace('driver.html');
+                        }
+                    }
+                }
+            } catch (e) { }
+        })();
+    </script>
+</body>
+
+</html>

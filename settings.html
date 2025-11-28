@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Driver Safety - Settings</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+  <script>
+    // Auth guard - require login
+    (function () {
+      try {
+        const token = localStorage.getItem('token');
+        const role = (localStorage.getItem('role') || 'driver').toLowerCase();
+        if (!token) {
+          // Redirect immediately without alert
+          window.location.replace('login.html');
+          return;
+        }
+        // Admin, driver, and user roles can access this page
+        if (role !== 'admin' && role !== 'driver' && role !== 'user') {
+          // Redirect first, then show alert
+          alert('Access denied. Please login as admin or driver.');
+          window.location.replace('login.html');
+          return;
+        }
+      } catch (e) {
+        window.location.replace('login.html');
+      }
+    })();
+  </script>
+</head>
+
+<body class="bg-gray-50 text-slate-900 min-h-screen flex flex-col font-sans">
+  <!-- Header -->
+  <header class="flex items-center justify-between bg-white px-6 py-3 shadow-sm sticky top-0 z-20">
+    <div class="flex items-center space-x-3 relative">
+      <button id="adminHamburgerBtn" aria-label="Open menu"
+        class="mr-2 p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+      <div
+        class="flex items-center justify-center w-10 h-10 bg-gray-200 rounded-md font-semibold text-gray-500 select-none">
+        AI</div>
+      <div class="leading-tight">
+        <h1 class="font-bold text-blue-600 text-lg md:text-xl">AI Driver Safety</h1>
+        <p class="text-xs text-gray-400">Settings</p>
+      </div>
+      <div id="adminHamburgerMenu"
+        class="hidden absolute left-0 top-12 w-44 bg-white border border-gray-200 rounded-md shadow-lg z-30">
+        <a href="#" id="dashboardLink" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+          <i class="ph ph-house"></i> Dashboard
+        </a>
+        <a href="history.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+          <i class="ph ph-clock-clockwise"></i> View History
+        </a>
+        <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+          <i class="ph ph-gear"></i> Settings
+        </a>
+        <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+          onclick="try{localStorage.removeItem('token');localStorage.removeItem('email');localStorage.removeItem('role');}catch(e){} window.location.href='login.html'; return false;">
+          <i class="ph ph-sign-out"></i> Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- Top nav removed to avoid duplication with sidebar -->
+
+    <div class="flex items-center space-x-5">
+      <div class="flex items-center space-x-2 text-green-500 font-medium select-none">
+        <span class="font-bold">System Online</span>
+        <span class="pulse-green block w-3 h-3 rounded-full"></span>
+      </div>
+      <button aria-label="User profile" title="User profile"
+        class="bg-blue-600 text-white w-10 h-10 rounded-full font-semibold select-none focus:outline-none focus:ring-2 focus:ring-blue-400"><span
+          id="userAvatarInitial">U</span></button>
+      <button id="logoutBtn" class="text-sm text-gray-600 hover:text-red-600">Logout</button>
+    </div>
+  </header>
+
+  <!-- Main content grid -->
+  <main class="flex flex-1 bg-gray-50 overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 overflow-y-auto">
+      <div class="px-6 py-6 sticky top-0 bg-white z-10 border-b border-gray-100">
+        <button id="sidebarCollapseBtn" aria-label="Toggle navigation"
+          class="block md:hidden text-gray-600 hover:text-blue-600 focus:outline-none">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+
+
+
+      </div>
+
+
+    </aside>
+
+    <!-- Responsive Sidebar for smaller screens -->
+    <div id="sidebarMobile"
+      class="fixed inset-y-0 left-0 bg-white w-64 border-r border-gray-200 z-30 transform -translate-x-full transition-transform duration-200 ease-in-out md:hidden overflow-y-auto">
+      <div class="px-6 py-6 border-b border-gray-100 sticky top-0 bg-white z-10 flex justify-between items-center">
+
+        <button id="sidebarCloseBtn" aria-label="Close navigation"
+          class="text-gray-600 hover:text-blue-600 focus:outline-none">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+
+
+    </div>
+
+    <!-- Content Area -->
+    <section class="flex-1 p-6 overflow-y-auto max-h-screen">
+      <nav class="text-sm mb-6 text-gray-500 select-none" aria-label="breadcrumb">
+        <ol class="list-reset flex space-x-1">
+          <li><a href="#" id="breadcrumbDashboardLink" class="hover:text-blue-600">Dashboard</a></li>
+          <li>/</li>
+          <li class="text-gray-700 font-semibold">Settings</li>
+        </ol>
+      </nav>
+
+      <h2 class="text-2xl font-extrabold text-slate-900 mb-1 select-none">Settings</h2>
+      <p class="text-sm text-gray-500 mb-6 select-none">Customize system alert preferences, detection sensitivity, and
+        manage contacts to personalize your safety system.</p>
+
+      <div class="space-y-6">
+        <!-- Alert Preferences -->
+        <section class="bg-white rounded-lg shadow-sm p-5 border border-gray-100 select-none">
+          <div class="font-semibold text-slate-700 mb-4">Alert Preferences</div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+            <label class="inline-flex items-center gap-2">
+              <input id="prefAlarmSound" type="checkbox" class="accent-blue-600" checked />
+              <span>Play alarm sound</span>
+            </label>
+            <label class="inline-flex items-center gap-2">
+              <input id="prefVibrate" type="checkbox" class="accent-blue-600" />
+              <span>Vibrate device (mobile)</span>
+            </label>
+            <label class="inline-flex items-center gap-2">
+              <input id="prefNotify" type="checkbox" class="accent-blue-600" />
+              <span>Browser notification</span>
+            </label>
+            <div>
+              <label class="block mb-1">Frames below threshold</label>
+              <input id="framesBelowInput" type="number" min="3" max="30" value="12"
+                class="w-28 border border-gray-300 rounded-md px-2 py-1" />
+            </div>
+          </div>
+          <div class="mt-3">
+            <button id="saveAlertPrefs"
+              class="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700">Save Preferences</button>
+          </div>
+        </section>
+
+        <!-- IoT / Arduino -->
+        <section class="bg-white rounded-lg shadow-sm p-5 border border-gray-100 select-none">
+          <div class="font-semibold text-slate-700 mb-2">IoT / Arduino Integration</div>
+          <p class="text-xs text-gray-500 mb-3">Connect an Arduino Uno via USB for buzzer/LED alerts.</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end text-sm text-gray-700">
+            <label class="inline-flex items-center gap-2">
+              <input id="iotEnabled" type="checkbox" class="accent-blue-600" />
+              <span>Enable Arduino alerts</span>
+            </label>
+            <div>
+              <label class="block mb-1">Serial Port</label>
+              <select id="serialPortSelect" class="w-full border border-gray-300 rounded-md px-2 py-2"></select>
+            </div>
+            <div class="flex gap-2">
+              <button id="refreshPortsBtn" class="px-3 py-2 bg-gray-200 rounded-md">Refresh</button>
+              <button id="saveIotBtn" class="px-3 py-2 bg-blue-600 text-white rounded-md">Save</button>
+            </div>
+          </div>
+          <p class="text-xs text-gray-400 mt-2">On alert: backend sends <code>ALERT</code>; on safe: <code>SAFE</code>.
+          </p>
+        </section>
+
+        <!-- Detection Sensitivity -->
+        <section class="bg-white rounded-lg shadow-sm p-5 border border-gray-100 select-none">
+          <div class="font-semibold text-slate-700 mb-2">Detection Sensitivity</div>
+          <p class="text-xs text-gray-500 mb-4">Higher sensitivity detects subtle signs of drowsiness earlier, but may
+            result in more frequent alerts.</p>
+          <div class="max-w-xl">
+            <input id="sensitivityRange" type="range" min="0" max="100" value="25" class="w-full accent-blue-600" />
+            <div class="flex justify-between text-xs text-gray-500 mt-2">
+              <span>Low</span>
+              <span id="sensitivityLabel">Normal</span>
+              <span>High</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Camera Settings -->
+        <section class="bg-white rounded-lg shadow-sm p-5 border border-gray-100 select-none">
+          <div class="font-semibold text-slate-700 mb-2">Camera Settings</div>
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end text-sm text-gray-700">
+            <div>
+              <label class="block mb-1">Server Camera</label>
+              <select id="serverCameraSelect" class="w-full border border-gray-300 rounded-md px-2 py-2"></select>
+            </div>
+            <div>
+              <label class="block mb-1">Resolution</label>
+              <div class="flex gap-2">
+                <input id="camWidth" type="number" min="160" max="1920" step="10"
+                  class="w-28 border border-gray-300 rounded-md px-2 py-1" placeholder="Width" />
+                <input id="camHeight" type="number" min="120" max="1080" step="10"
+                  class="w-28 border border-gray-300 rounded-md px-2 py-1" placeholder="Height" />
+              </div>
+            </div>
+            <div>
+              <label class="block mb-1">FPS</label>
+              <input id="camFps" type="number" min="5" max="60" value="15"
+                class="w-28 border border-gray-300 rounded-md px-2 py-1" />
+            </div>
+            <label class="inline-flex items-center gap-2">
+              <input id="camMirror" type="checkbox" class="accent-blue-600" />
+              <span>Mirror display</span>
+            </label>
+            <div>
+              <label class="block mb-1">JPEG Quality</label>
+              <input id="jpegQuality" type="number" min="30" max="95" value="80"
+                class="w-28 border border-gray-300 rounded-md px-2 py-1" />
+            </div>
+          </div>
+          <div class="mt-3">
+            <button id="saveCamSettings"
+              class="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700">Save Camera
+              Settings</button>
+          </div>
+        </section>
+
+        <!-- Emergency Contacts -->
+        <section class="bg-white rounded-lg shadow-sm p-5 border border-gray-100 select-none">
+          <div class="flex flex-col items-center mb-3">
+            <div class="font-semibold text-slate-700 mb-2">Emergency Contacts</div>
+            <button id="addContactBtn" class="px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700">+
+              Add Contact</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+              <thead class="text-left text-gray-500">
+                <tr>
+                  <th class="py-2 pr-4">Name</th>
+                  <th class="py-2 pr-4">Phone</th>
+                  <th class="py-2 pr-4">Notify</th>
+                  <th class="py-2 pr-4"></th>
+                </tr>
+              </thead>
+              <tbody id="contactsTableBody" class="text-gray-700"></tbody>
+            </table>
+          </div>
+          <div class="mt-3 text-xs text-gray-400">Toggle Notify to receive SMS when a drowsiness alert occurs. Configure
+            Twilio env vars on the server.</div>
+
+          <!-- Modal -->
+          <div id="contactModal" class="hidden fixed inset-0 bg-black/50 z-40 flex items-center justify-center">
+            <div class="bg-white rounded-lg p-4 w-11/12 max-w-md">
+              <h4 id="contactModalTitle" class="font-semibold mb-3">Add Contact</h4>
+              <div class="space-y-3">
+                <input id="contactName" class="w-full border border-gray-300 rounded-md px-3 py-2"
+                  placeholder="Full Name" />
+                <input id="contactPhone" class="w-full border border-gray-300 rounded-md px-3 py-2"
+                  placeholder="Phone (e.g. +6391234567)" />
+                <label class="inline-flex items-center gap-2 text-sm"><input id="contactNotify" type="checkbox"
+                    class="accent-blue-600" /> <span>Enable SMS notify</span></label>
+              </div>
+              <div class="mt-4 flex justify-end gap-2">
+                <button id="contactCancel" class="px-3 py-2 bg-gray-200 rounded-md">Cancel</button>
+                <button id="contactSave" class="px-3 py-2 bg-blue-600 text-white rounded-md">Save</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+
+
+  <script src="script.js"></script>
+  <script>
+    (function () {
+      // Set dashboard links based on user role
+      const role = (localStorage.getItem('role') || 'driver').toLowerCase();
+      const dashboardUrl = role === 'admin' ? 'admin.html' : 'driver.html';
+      
+      const dashboardLink = document.getElementById('dashboardLink');
+      const breadcrumbLink = document.getElementById('breadcrumbDashboardLink');
+      
+      if (dashboardLink) {
+        dashboardLink.href = dashboardUrl;
+      }
+      if (breadcrumbLink) {
+        breadcrumbLink.href = dashboardUrl;
+      }
+
+      const btn = document.getElementById('adminHamburgerBtn');
+      const menu = document.getElementById('adminHamburgerMenu');
+      btn?.addEventListener('click', (e) => { e.stopPropagation(); menu?.classList.toggle('hidden'); });
+      document.addEventListener('click', (e) => {
+        if (!menu || menu.classList.contains('hidden')) return;
+        const t = e.target;
+        if (!(t instanceof Element)) { menu.classList.add('hidden'); return; }
+        if (!menu.contains(t) && t !== btn) menu.classList.add('hidden');
+      });
+
+    })();
+  </script>
+</body>
+
+</html>

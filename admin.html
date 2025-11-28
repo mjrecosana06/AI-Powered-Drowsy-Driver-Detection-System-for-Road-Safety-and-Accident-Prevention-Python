@@ -1,0 +1,2796 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Driver Safety - Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/@phosphor-icons/web" defer></script>
+  <script>
+    // Admin auth guard before paint
+    (function () {
+      try {
+        const token = localStorage.getItem('token');
+        const role = (localStorage.getItem('role') || 'driver').toLowerCase();
+        if (!token) {
+          // Redirect immediately without alert
+          window.location.replace('login.html');
+          return;
+        }
+        if (role !== 'admin') {
+          // Redirect first, then show alert
+          alert('Access denied. This page is for administrators only.');
+          window.location.replace('driver.html');
+          return;
+        }
+      } catch (e) { window.location.replace('login.html'); }
+    })();
+  </script>
+  <style>
+    /* optional subtle hero gradient */
+    .hero-bg {
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(59, 130, 246, .15), transparent), radial-gradient(900px 500px at 120% 20%, rgba(99, 102, 241, .12), transparent);
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 text-slate-900 min-h-screen flex flex-col font-sans page-fade-in">
+  <!-- Header -->
+  <header class="flex items-center justify-between bg-white px-6 py-3 shadow-sm sticky top-0 z-20">
+    <div class="flex items-center space-x-3 relative">
+      <button id="adminHamburgerBtn" aria-label="Open menu"
+        class="mr-2 p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-400">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+      <div
+        class="flex items-center justify-center w-10 h-10 bg-gray-200 rounded-md font-semibold text-gray-500 select-none">
+        AI</div>
+      <div class="leading-tight">
+        <h1 class="font-bold text-orange-600 text-lg md:text-xl">AI Driver Safety</h1>
+        <p class="text-xs text-gray-400">Admin Console</p>
+      </div>
+      <!-- Dropdown menu -->
+      <div id="adminHamburgerMenu"
+        class="hidden absolute left-0 top-12 w-44 bg-white border border-gray-200 rounded-md shadow-lg z-30">
+        <a href="admin.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Admin Panel</a>
+        <a href="history.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">View History</a>
+        <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Settings</a>
+        <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+          onclick="try{localStorage.removeItem('token');localStorage.removeItem('email');localStorage.removeItem('role');}catch(e){} window.location.href='login.html'; return false;">Logout</button>
+      </div>
+    </div>
+
+    <div class="flex items-center space-x-5">
+      <div class="flex items-center space-x-2 text-green-500 font-medium select-none">
+        <span class="font-bold">System Online</span>
+        <span class="pulse-green block w-3 h-3 rounded-full"></span>
+      </div>
+      <button aria-label="User profile" title="User profile"
+        class="bg-orange-600 text-white w-10 h-10 rounded-full font-semibold select-none focus:outline-none focus:ring-2 focus:ring-orange-400"><span
+          id="userAvatarInitial">A</span></button>
+      <button id="logoutBtn" class="text-sm text-gray-600 hover:text-red-600">Logout</button>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main class="flex-1">
+    <!-- Hero -->
+    <section class="hero-bg">
+      <div class="max-w-7xl mx-auto px-6 py-10 md:py-14">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          <div>
+            <div
+              class="inline-flex items-center gap-2 text-xs text-orange-700 bg-orange-50 px-2.5 py-1 rounded-full mb-3 select-none">
+              <i class="ph ph-shield-check"></i> <span>Admin</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-extrabold leading-tight mb-3">Multi-Driver Safety Dashboard</h2>
+            <p class="text-gray-600 mb-5">Monitor all drivers in real-time, view live camera feeds, track drowsiness
+              metrics,
+              manage emergency contacts, and configure system settings from one centralized control panel.</p>
+            <div
+              class="mt-3 inline-flex items-center gap-2 text-xs text-orange-700 bg-orange-50 px-3 py-1.5 rounded-full">
+              <i class="ph ph-shield-check"></i>
+              <span>Single Admin System - Only one admin account exists</span>
+            </div>
+            <div class="flex flex-wrap gap-3 text-sm text-gray-600">
+              <div class="flex items-center gap-2">
+                <i class="ph ph-check-circle text-green-600"></i>
+                <span>Remote Video Monitoring</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i class="ph ph-check-circle text-green-600"></i>
+                <span>Real-time Metrics</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i class="ph ph-check-circle text-green-600"></i>
+                <span>Alert Management</span>
+              </div>
+            </div>
+          </div>
+          <div class="bg-gradient-to-br from-orange-50 to-indigo-50 rounded-xl shadow p-6 border border-orange-100">
+            <div class="flex items-center mb-4 text-orange-700 space-x-2 font-semibold text-xl select-none">
+              <i class="ph ph-monitor-play w-7 h-7"></i>
+              <span>Admin Control Center</span>
+            </div>
+            <p class="text-gray-700 mb-4 text-sm">
+              Monitor all registered drivers in real-time. View their camera feeds, track metrics, and manage alerts
+              from this central dashboard.
+            </p>
+            <div class="grid grid-cols-2 gap-3 text-sm">
+              <div class="p-3 rounded-lg border border-orange-200 bg-white/70">
+                <div class="text-orange-600 font-semibold">Active Feeds</div>
+                <div id="activeFeedsCount" class="font-bold text-orange-900 text-xl">0</div>
+              </div>
+              <div class="p-3 rounded-lg border border-orange-200 bg-white/70">
+                <div class="text-orange-600 font-semibold">Live Drivers</div>
+                <div id="liveDriversCount" class="font-bold text-orange-900 text-xl">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Multi-Driver Monitoring Dashboard -->
+    <section class="max-w-7xl mx-auto px-6 py-8 border-b border-gray-200">
+      <div class="mb-6 flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <i class="ph ph-users-three text-orange-600"></i>
+            Multi-Driver Monitoring
+          </h2>
+          <p class="text-sm text-gray-500 mt-1">Real-time status of all registered drivers</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="refreshDriversBtn"
+            class="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition inline-flex items-center gap-2 text-sm">
+            <i class="ph ph-arrow-clockwise"></i>
+            Refresh
+          </button>
+          <div class="flex items-center gap-2 text-sm">
+            <span class="live-indicator"></span>
+            <span class="text-gray-600">Auto-refresh: <span id="autoRefreshStatus"
+                class="font-semibold text-green-600">ON</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics Summary Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div
+          class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200 cursor-pointer hover:shadow-lg transition-all"
+          onclick="filterByStatus('all')" title="Click to show all drivers">
+          <div class="flex items-center justify-between mb-2">
+            <i class="ph ph-users text-2xl text-orange-600"></i>
+            <span class="text-xs font-semibold text-orange-600 bg-orange-200 px-2 py-1 rounded-full">TOTAL</span>
+          </div>
+          <div class="text-2xl font-bold text-orange-900" id="totalDrivers">0</div>
+          <div class="text-xs text-orange-700 mt-1">Registered Drivers</div>
+        </div>
+
+        <div
+          class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200 cursor-pointer hover:shadow-lg transition-all"
+          onclick="filterByStatus('online')" title="Click to show only online drivers">
+          <div class="flex items-center justify-between mb-2">
+            <i class="ph ph-check-circle text-2xl text-green-600"></i>
+            <span class="text-xs font-semibold text-green-600 bg-green-200 px-2 py-1 rounded-full">ACTIVE</span>
+          </div>
+          <div class="text-2xl font-bold text-green-900" id="activeDrivers">0</div>
+          <div class="text-xs text-green-700 mt-1">Drivers Online</div>
+        </div>
+
+        <div
+          class="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-4 border border-amber-200 cursor-pointer hover:shadow-lg transition-all"
+          onclick="filterByStatus('drowsy')" title="Click to show only drowsy drivers">
+          <div class="flex items-center justify-between mb-2">
+            <i class="ph ph-warning text-2xl text-amber-600"></i>
+            <span class="text-xs font-semibold text-amber-600 bg-amber-200 px-2 py-1 rounded-full">WARNING</span>
+          </div>
+          <div class="text-2xl font-bold text-amber-900" id="warningDrivers">0</div>
+          <div class="text-xs text-amber-700 mt-1">Drivers Drowsy</div>
+        </div>
+
+        <div
+          class="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200 cursor-pointer hover:shadow-lg transition-all"
+          onclick="filterByStatus('critical')" title="Click to show only critical drivers">
+          <div class="flex items-center justify-between mb-2">
+            <i class="ph ph-bell-ringing text-2xl text-red-600"></i>
+            <span class="text-xs font-semibold text-red-600 bg-red-200 px-2 py-1 rounded-full">CRITICAL</span>
+          </div>
+          <div class="text-2xl font-bold text-red-900" id="criticalAlerts">0</div>
+          <div class="text-xs text-red-700 mt-1">Unacknowledged</div>
+        </div>
+      </div>
+
+      <!-- Driver Grid View -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
+            <i class="ph ph-monitor"></i>
+            Live Driver Status
+          </h3>
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-600">View:</label>
+            <select id="viewModeSelect"
+              class="px-3 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-400">
+              <option value="grid">Grid View</option>
+              <option value="list">List View</option>
+              <option value="compact">Compact View</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Search and Filter Bar -->
+        <div class="mb-4 flex flex-col sm:flex-row gap-3">
+          <div class="flex-1 relative">
+            <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            <input type="text" id="driverSearchInput" placeholder="Search drivers by name or email..."
+              class="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-400 focus:border-orange-400">
+          </div>
+          <div class="flex gap-2">
+            <select id="statusFilterSelect"
+              class="px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-400">
+              <option value="all">All Status</option>
+              <option value="online">Online</option>
+              <option value="offline">Offline</option>
+              <option value="monitoring">Monitoring</option>
+              <option value="drowsy">Drowsy</option>
+              <option value="critical">Critical</option>
+            </select>
+            <button id="clearFiltersBtn"
+              class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition"
+              title="Clear all filters">
+              <i class="ph ph-x"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Grid View Container -->
+        <div id="driversGridContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <!-- Driver cards will be inserted here dynamically -->
+          <div class="col-span-full text-center py-12 text-gray-400">
+            <i class="ph ph-spinner text-4xl mb-3 animate-spin"></i>
+            <p>Loading driver information...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Management Panel -->
+    <section class="max-w-7xl mx-auto px-6 py-8 border-b border-gray-200">
+      <div class="mb-6 flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <i class="ph ph-phone text-orange-600"></i>
+            Emergency Contact Management
+          </h2>
+          <p class="text-sm text-gray-500 mt-1">Manage emergency contacts for drowsiness alerts</p>
+        </div>
+        <button id="addContactBtn"
+          class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition inline-flex items-center gap-2 text-sm">
+          <i class="ph ph-plus-circle"></i>
+          Add Contact
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Contact List -->
+        <div class="lg:col-span-2 bg-white rounded-lg shadow-sm p-5 border border-gray-100">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
+              <i class="ph ph-list"></i>
+              Contact List
+            </h3>
+            <span id="contactCount" class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-semibold">0
+              contacts</span>
+          </div>
+
+          <!-- Search bar -->
+          <div class="driver-search-bar mb-4">
+            <i class="ph ph-magnifying-glass driver-search-icon"></i>
+            <input type="text" id="contactSearchInput" class="driver-search-input"
+              placeholder="Search contacts by name, phone, email, or telegram...">
+          </div>
+
+          <!-- Contact table -->
+          <div id="contactsTableContainer" class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700">Contact Methods</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700">Priority</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                  <th class="text-center py-3 px-4 font-semibold text-gray-700">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="contactsTableBody">
+                <tr>
+                  <td colspan="5" class="text-center py-12 text-gray-400">
+                    <i class="ph ph-spinner text-4xl mb-3 animate-spin block mx-auto"></i>
+                    <p>Loading contacts...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Contact Stats & Quick Actions -->
+        <div class="space-y-4">
+          <!-- Stats Card -->
+          <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-5 border border-orange-200">
+            <div class="flex items-center justify-between mb-3">
+              <i class="ph ph-chart-bar text-3xl text-orange-600"></i>
+              <span class="text-xs font-semibold text-orange-600 bg-orange-200 px-2 py-1 rounded-full">STATS</span>
+            </div>
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-orange-700">Total Contacts:</span>
+                <span id="statTotalContacts" class="text-lg font-bold text-orange-900">0</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-orange-700">High Priority:</span>
+                <span id="statHighPriority" class="text-lg font-bold text-orange-900">0</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-orange-700">Active:</span>
+                <span id="statActiveContacts" class="text-lg font-bold text-orange-900">0</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- System Configuration Panel -->
+    <section class="max-w-7xl mx-auto px-6 py-8 border-b border-gray-200">
+      <div class="mb-6">
+        <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <i class="ph ph-gear text-orange-600"></i>
+          System Configuration
+        </h2>
+        <p class="text-sm text-gray-500 mt-1">Configure detection thresholds and system parameters</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Detection Settings -->
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
+          <h3 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+            <i class="ph ph-faders"></i>
+            Detection Thresholds
+          </h3>
+
+          <div class="space-y-4">
+            <!-- EAR Threshold -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                EAR Threshold
+                <span class="text-xs text-gray-500 ml-2">(Eye Aspect Ratio)</span>
+              </label>
+              <div class="flex items-center gap-3">
+                <input type="range" id="earThresholdSlider" min="0.15" max="0.35" step="0.01" value="0.23"
+                  class="flex-1">
+                <input type="number" id="earThresholdValue" min="0.15" max="0.35" step="0.01" value="0.23"
+                  class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Lower values are more sensitive (default: 0.23)</p>
+            </div>
+
+            <!-- MAR Threshold -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                MAR Threshold
+                <span class="text-xs text-gray-500 ml-2">(Mouth Aspect Ratio)</span>
+              </label>
+              <div class="flex items-center gap-3">
+                <input type="range" id="marThresholdSlider" min="0.4" max="0.8" step="0.05" value="0.65" class="flex-1">
+                <input type="number" id="marThresholdValue" min="0.4" max="0.8" step="0.05" value="0.65"
+                  class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Threshold for yawning detection (default: 0.65)</p>
+            </div>
+
+            <!-- Head Tilt -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Head Tilt Threshold (degrees)
+              </label>
+              <div class="flex items-center gap-3">
+                <input type="range" id="tiltThresholdSlider" min="10" max="30" step="1" value="18" class="flex-1">
+                <input type="number" id="tiltThresholdValue" min="10" max="30" step="1" value="18"
+                  class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Maximum allowed head tilt angle (default: 18°)</p>
+            </div>
+
+            <!-- PERCLOS Threshold -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                PERCLOS Threshold
+                <span class="text-xs text-gray-500 ml-2">(Percentage of Eye Closure)</span>
+              </label>
+              <div class="flex items-center gap-3">
+                <input type="range" id="perclosThresholdSlider" min="0.05" max="0.5" step="0.01" value="0.2"
+                  class="flex-1">
+                <input type="number" id="perclosThresholdValue" min="0.05" max="0.5" step="0.01" value="0.2"
+                  class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Higher values are more sensitive (default: 0.2 = 20%)</p>
+            </div>
+
+            <!-- Frames Below Threshold -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Consecutive Frames Required
+              </label>
+              <div class="flex items-center gap-3">
+                <input type="range" id="framesThresholdSlider" min="3" max="30" step="1" value="10" class="flex-1">
+                <input type="number" id="framesThresholdValue" min="3" max="30" step="1" value="10"
+                  class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Number of consecutive frames before alert (default: 10)</p>
+            </div>
+
+            <div class="border-t border-gray-200 pt-4 mt-4">
+              <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <i class="ph ph-timer"></i>
+                Metric Timer Thresholds (Sensitivity Control)
+              </h4>
+              <p class="text-xs text-gray-500 mb-3">Set how long a metric must be in alert state before triggering.
+                Higher values = less sensitive.</p>
+
+              <!-- EAR Timer -->
+              <div class="mb-3">
+                <label class="block text-xs font-medium text-gray-600 mb-1">EAR Alert Duration (seconds)</label>
+                <div class="flex items-center gap-2">
+                  <input type="range" id="earTimerSlider" min="1" max="60" step="1" value="5" class="flex-1">
+                  <input type="number" id="earTimerValue" min="1" max="60" step="1" value="5"
+                    class="w-16 px-2 py-1 border border-gray-300 rounded text-xs">
+                  <span class="text-xs text-gray-500">sec</span>
+                </div>
+              </div>
+
+              <!-- MAR Timer -->
+              <div class="mb-3">
+                <label class="block text-xs font-medium text-gray-600 mb-1">MAR Alert Duration (seconds)</label>
+                <div class="flex items-center gap-2">
+                  <input type="range" id="marTimerSlider" min="1" max="60" step="1" value="3" class="flex-1">
+                  <input type="number" id="marTimerValue" min="1" max="60" step="1" value="3"
+                    class="w-16 px-2 py-1 border border-gray-300 rounded text-xs">
+                  <span class="text-xs text-gray-500">sec</span>
+                </div>
+              </div>
+
+              <!-- Tilt Timer -->
+              <div class="mb-3">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Head Tilt Alert Duration (seconds)</label>
+                <div class="flex items-center gap-2">
+                  <input type="range" id="tiltTimerSlider" min="1" max="60" step="1" value="3" class="flex-1">
+                  <input type="number" id="tiltTimerValue" min="1" max="60" step="1" value="3"
+                    class="w-16 px-2 py-1 border border-gray-300 rounded text-xs">
+                  <span class="text-xs text-gray-500">sec</span>
+                </div>
+              </div>
+
+              <!-- PERCLOS Timer -->
+              <div class="mb-3">
+                <label class="block text-xs font-medium text-gray-600 mb-1">PERCLOS Alert Duration (seconds)</label>
+                <div class="flex items-center gap-2">
+                  <input type="range" id="perclosTimerSlider" min="1" max="60" step="1" value="5" class="flex-1">
+                  <input type="number" id="perclosTimerValue" min="1" max="60" step="1" value="5"
+                    class="w-16 px-2 py-1 border border-gray-300 rounded text-xs">
+                  <span class="text-xs text-gray-500">sec</span>
+                </div>
+              </div>
+            </div>
+
+            <button id="saveDetectionSettingsBtn"
+              class="w-full px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition font-semibold">
+              Save Detection Settings
+            </button>
+          </div>
+        </div>
+
+        <!-- Alert & Notification Settings -->
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
+          <h3 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+            <i class="ph ph-bell"></i>
+            Alert & Notification Settings
+          </h3>
+
+          <div class="space-y-4">
+            <!-- Alert Sound -->
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div>
+                <div class="font-medium text-sm text-gray-700">Alert Sound</div>
+                <div class="text-xs text-gray-500">Play audio alert when drowsiness detected</div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="alertSoundToggle" class="sr-only peer" checked>
+                <div
+                  class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600">
+                </div>
+              </label>
+            </div>
+
+            <!-- SMS Alerts -->
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div>
+                <div class="font-medium text-sm text-gray-700">SMS Alerts</div>
+                <div class="text-xs text-gray-500">Send SMS to emergency contacts</div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="smsAlertsToggle" class="sr-only peer" checked>
+                <div
+                  class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600">
+                </div>
+              </label>
+            </div>
+
+            <!-- IoT Device Integration -->
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div>
+                <div class="font-medium text-sm text-gray-700">IoT Device (Arduino)</div>
+                <div class="text-xs text-gray-500">Control buzzer/LED via serial</div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="iotToggle" class="sr-only peer">
+                <div
+                  class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600">
+                </div>
+              </label>
+            </div>
+
+            <!-- Serial Port Selection -->
+            <div id="serialPortSection" class="hidden">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Serial Port</label>
+              <select id="serialPortSelect"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-400 text-sm">
+                <option value="">Select a port...</option>
+              </select>
+            </div>
+
+            <!-- Alert Cooldown -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Alert Cooldown (seconds)
+              </label>
+              <input type="number" id="alertCooldownInput" min="10" max="300" value="30"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+              <p class="text-xs text-gray-500 mt-1">Minimum time between consecutive alerts</p>
+            </div>
+
+            <!-- Maximum Alert Count -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Maximum Alert Count (per session)
+              </label>
+              <input type="number" id="maxAlertCountInput" min="1" max="20" value="5"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+              <p class="text-xs text-gray-500 mt-1">Maximum number of alerts to show per monitoring session (0 =
+                unlimited)</p>
+            </div>
+
+            <button id="saveAlertSettingsBtn"
+              class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition font-semibold">
+              Save Alert Settings
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Multi-Feed Monitoring Grid -->
+    <section class="max-w-7xl mx-auto px-6 py-8 border-b border-gray-200">
+      <div class="mb-6 flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <i class="ph ph-monitor-play text-orange-600"></i>
+            Multi-Driver Video Feeds
+          </h2>
+          <p class="text-sm text-gray-500 mt-1">View multiple driver camera feeds simultaneously</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <select id="gridLayoutSelect"
+            class="px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-400">
+            <option value="2x2">2×2 Grid (4 feeds)</option>
+            <option value="3x2">3×2 Grid (6 feeds)</option>
+            <option value="3x3">3×3 Grid (9 feeds)</option>
+            <option value="single" selected>Single Feed</option>
+          </select>
+          <button id="refreshMultiFeedsBtn"
+            class="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition inline-flex items-center gap-2 text-sm">
+            <i class="ph ph-arrow-clockwise"></i>
+            Refresh Feeds
+          </button>
+        </div>
+      </div>
+
+      <!-- Multi-Feed Grid Container -->
+      <div id="multiFeedContainer" class="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <div id="videoGridContainer" class="grid grid-cols-1 gap-4">
+          <!-- Video feeds will be inserted here dynamically -->
+          <div class="text-center py-12 text-gray-400">
+            <i class="ph ph-television text-4xl mb-3"></i>
+            <p>Select a grid layout above to view multiple feeds</p>
+            <p class="text-xs mt-2">Drivers must be online and monitoring for feeds to appear</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Admin panels -->
+    <section class="max-w-7xl mx-auto px-6 py-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Remote Driver Monitoring Feed -->
+        <div class="lg:col-span-2 bg-white rounded-lg shadow-sm p-5 border border-gray-100 select-none">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center text-orange-600 space-x-2 font-semibold text-lg">
+              <i class="ph ph-broadcast w-6 h-6"></i>
+              <span>Remote Driver Monitoring</span>
+              <span class="live-indicator ml-2"></span>
+            </div>
+            <div class="flex items-center gap-2">
+              <select id="driverSelectMonitor"
+                class="px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-400 bg-white">
+                <option value="">Select driver to monitor...</option>
+                <option value="current">Current System Feed</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Admin View Info Banner -->
+          <div class="mb-3 bg-orange-50 border-l-4 border-orange-500 p-3 rounded">
+            <div class="flex flex-col gap-1 text-sm">
+              <div class="flex items-center gap-2">
+                <i class="ph ph-info text-orange-600"></i>
+                <span class="font-semibold text-orange-800">Remote Monitoring Mode:</span>
+              </div>
+              <span class="text-orange-700">• <strong>Select a driver</strong> from the dropdown to view their live
+                camera
+                feed</span>
+              <span class="text-orange-700">• <strong>No admin camera required</strong> - monitor drivers directly
+                without
+                opening your camera</span>
+              <span class="text-orange-700">• Drivers must be actively monitoring to appear in the list</span>
+              <span class="text-orange-700">• <strong>Optional:</strong> Select "Current System Feed" if you want to
+                view
+                admin camera</span>
+            </div>
+          </div>
+
+          <div
+            class="relative rounded-md overflow-hidden border border-gray-300 bg-gray-900 aspect-video flex items-center justify-center video-container">
+            <!-- Video Feed with Detection Overlay -->
+            <img id="videoFeed" alt="Remote Driver Camera Feed" class="w-full h-full object-cover hidden"
+              loading="eager" decoding="async" />
+
+            <!-- Admin Overlay Information -->
+            <div id="adminOverlayInfo"
+              class="absolute top-3 left-3 bg-black/70 text-white px-3 py-2 rounded-lg text-xs space-y-1 backdrop-blur-sm hidden">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                <span class="font-semibold">LIVE MONITORING</span>
+              </div>
+              <div id="monitoredDriverInfo" class="text-gray-300">Driver: System Feed</div>
+              <div id="monitoringDuration" class="text-gray-300">Duration: --:--</div>
+            </div>
+
+            <!-- Detection Status Overlay (Admin Only) -->
+            <div id="detectionOverlay"
+              class="absolute top-3 right-3 bg-black/70 text-white px-3 py-2 rounded-lg text-xs backdrop-blur-sm hidden">
+              <div class="space-y-1">
+                <div class="font-semibold text-green-400">✓ Detection Active</div>
+                <div class="text-gray-300">Facial landmarks: <span id="landmarksCount">0</span></div>
+                <div class="text-gray-300">Processing: <span id="processingFps">-- FPS</span></div>
+              </div>
+            </div>
+
+            <!-- Placeholder -->
+            <div id="videoPlaceholder"
+              class="absolute inset-0 flex items-center justify-center text-center p-6 pointer-events-none bg-gradient-to-br from-slate-800 to-slate-900">
+              <div class="max-w-md">
+                <div
+                  class="mx-auto w-20 h-20 rounded-full bg-orange-600/20 text-orange-400 flex items-center justify-center mb-4 border-2 border-orange-500/30">
+                  <i class="ph ph-monitor-play text-4xl"></i>
+                </div>
+                <div class="font-bold text-white mb-2 text-xl">Select Driver to Monitor</div>
+                <p class="text-sm text-gray-400 mb-4">Choose a driver from the dropdown above to view their live camera
+                  feed</p>
+                <div class="inline-flex items-center gap-2 text-xs text-gray-500 bg-gray-800/50 px-3 py-2 rounded-full">
+                  <i class="ph ph-info"></i>
+                  <span>Admin camera not required - monitor drivers directly</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Timestamp Badge -->
+            <div class="absolute bottom-3 right-3 bg-black/80 text-white px-3 py-1 rounded-lg text-xs backdrop-blur-sm">
+              <i class="ph ph-clock mr-1"></i>
+              <span id="cameraTimestamp">--/--/-- --:--:--</span>
+            </div>
+
+            <!-- Recording Indicator (if recording) -->
+            <div id="recordingIndicator"
+              class="absolute bottom-3 left-3 bg-red-600/90 text-white px-3 py-1 rounded-lg text-xs backdrop-blur-sm hidden">
+              <i class="ph ph-record-fill mr-1 animate-pulse"></i>
+              <span>Recording</span>
+            </div>
+          </div>
+
+          <!-- Live Metrics Display for Selected Driver -->
+          <div id="adminMetricsSection" class="mt-4 bg-gray-50 rounded-lg p-4 border border-gray-200 hidden">
+            <div class="flex items-center mb-3 text-orange-600 space-x-2 font-semibold text-sm">
+              <i class="ph ph-chart-line"></i>
+              <span>Live Detection Metrics</span>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+              <div class="p-3 rounded border border-gray-200 bg-white hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="text-gray-500 text-xs">EAR</div>
+                  <i class="ph ph-clock text-xs text-gray-400"></i>
+                </div>
+                <div id="adminMetricEAR" class="font-bold text-slate-800 text-base mb-1">--</div>
+                <div id="adminMetricEARTime" class="text-xs text-gray-500 mb-1">--</div>
+                <!-- Threshold Progress Bar -->
+                <div class="mt-2">
+                  <div class="flex items-center justify-end mb-1">
+                    <span id="adminMetricEARThreshold" class="text-xs font-semibold text-gray-700">--</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div id="adminMetricEARProgress"
+                      class="bg-orange-600 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                  </div>
+                  <div id="adminMetricEARProgressText" class="text-xs text-gray-600 mt-0.5">--</div>
+                </div>
+              </div>
+              <div class="p-3 rounded border border-gray-200 bg-white hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="text-gray-500 text-xs">MAR</div>
+                  <i class="ph ph-clock text-xs text-gray-400"></i>
+                </div>
+                <div id="adminMetricMAR" class="font-bold text-slate-800 text-base mb-1">--</div>
+                <div id="adminMetricMARTime" class="text-xs text-gray-500 mb-1">--</div>
+                <!-- Threshold Progress Bar -->
+                <div class="mt-2">
+                  <div class="flex items-center justify-end mb-1">
+                    <span id="adminMetricMARThreshold" class="text-xs font-semibold text-gray-700">--</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div id="adminMetricMARProgress"
+                      class="bg-orange-600 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                  </div>
+                  <div id="adminMetricMARProgressText" class="text-xs text-gray-600 mt-0.5">--</div>
+                </div>
+              </div>
+              <div class="p-3 rounded border border-gray-200 bg-white hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="text-gray-500 text-xs">Head Tilt</div>
+                  <i class="ph ph-clock text-xs text-gray-400"></i>
+                </div>
+                <div id="adminMetricTilt" class="font-bold text-slate-800 text-base mb-1">--</div>
+                <div id="adminMetricTiltTime" class="text-xs text-gray-500 mb-1">--</div>
+                <!-- Threshold Progress Bar -->
+                <div class="mt-2">
+                  <div class="flex items-center justify-end mb-1">
+                    <span id="adminMetricTiltThreshold" class="text-xs font-semibold text-gray-700">--</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div id="adminMetricTiltProgress"
+                      class="bg-orange-600 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                  </div>
+                  <div id="adminMetricTiltProgressText" class="text-xs text-gray-600 mt-0.5">--</div>
+                </div>
+              </div>
+              <div class="p-3 rounded border border-gray-200 bg-white hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="text-gray-500 text-xs">PERCLOS</div>
+                  <i class="ph ph-clock text-xs text-gray-400"></i>
+                </div>
+                <div id="adminMetricPerclos" class="font-bold text-slate-800 text-base mb-1">--</div>
+                <div id="adminMetricPerclosTime" class="text-xs text-gray-500 mb-1">--</div>
+                <!-- Threshold Progress Bar -->
+                <div class="mt-2">
+                  <div class="flex items-center justify-end mb-1">
+                    <span id="adminMetricPerclosThreshold" class="text-xs font-semibold text-gray-700">--</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div id="adminMetricPerclosProgress"
+                      class="bg-orange-600 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                  </div>
+                  <div id="adminMetricPerclosProgressText" class="text-xs text-gray-600 mt-0.5">--</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Admin Controls -->
+          <div class="mt-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <button id="toggleDetectionOverlay"
+                class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition inline-flex items-center gap-2">
+                <i class="ph ph-info"></i>
+                <span>Toggle Detection Info</span>
+              </button>
+              <button id="takeSnapshotBtn"
+                class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition inline-flex items-center gap-2">
+                <i class="ph ph-camera"></i>
+                <span>Snapshot</span>
+              </button>
+            </div>
+            <div class="text-xs text-gray-500">
+              <i class="ph ph-shield-check mr-1"></i>
+              Admin monitoring mode
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar: Recent Alerts & Driver Location -->
+        <div class="space-y-4">
+          <!-- Recent Alerts (Simplified) -->
+          <div class="bg-white rounded-lg p-5 border border-gray-100 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-semibold flex items-center space-x-2 text-slate-700">
+                <i class="ph ph-bell-ringing w-5 h-5"></i>
+                <span>Recent Alerts</span>
+            </h3>
+            <button id="refreshAlertsBtn"
+                class="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition"
+                title="Refresh">
+                <i class="ph ph-arrow-clockwise text-sm"></i>
+            </button>
+          </div>
+            <ul id="adminAlertsList" class="text-sm text-gray-700 space-y-2 max-h-48 overflow-auto">
+              <li class="text-gray-400 text-center py-4 text-xs">No alerts yet</li>
+          </ul>
+        </div>
+
+          <!-- Driver Location (Simplified) -->
+          <div class="bg-white rounded-lg p-5 border border-gray-100 shadow-sm" id="adminLocationCard">
+          <h3 class="text-lg font-semibold mb-3 flex items-center space-x-2 text-slate-700">
+              <i class="ph ph-map-pin text-orange-600 w-5 h-5"></i>
+            <span>Driver Location</span>
+          </h3>
+            <div class="text-sm text-gray-600 space-y-2">
+              <div>Last: <span id="driverLocationTime" class="text-gray-800 font-medium">--</span></div>
+              <div>Coords: <span id="driverLocationCoords" class="text-gray-800 font-medium">--, --</span></div>
+            <a id="driverLocationLink" href="#" target="_blank"
+                class="inline-block mt-2 px-3 py-1.5 rounded bg-orange-600 text-white text-xs hover:bg-orange-700 transition">
+                <i class="ph ph-map-trifold mr-1"></i>Open in Maps
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
+    </section>
+  </main>
+
+  <!-- Drowsiness Alert Overlay (shared) -->
+  <div id="alertOverlay" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-40">
+    <div
+      class="bg-white md:rounded-2xl md:shadow-2xl md:max-w-2xl w-full h-full md:h-auto md:w-11/12 p-8 md:border-2 md:border-red-600 text-center flex flex-col items-center justify-center">
+      <div
+        class="mx-auto w-32 h-32 md:w-28 md:h-28 rounded-full bg-red-100 text-red-700 flex items-center justify-center mb-6 md:mb-5 shrink-0 leading-none">
+        <i class="ph ph-warning-octagon text-[88px] md:text-[72px] leading-none"></i>
+      </div>
+      <h3 class="text-4xl md:text-3xl font-extrabold text-red-700 mb-4 md:mb-3">Drowsiness Detected</h3>
+      <p id="alertReason" class="text-gray-700 md:text-gray-600 mb-2 text-xl md:text-lg px-3">Stay alert. Please
+        take a break.</p>
+      <p id="alertStatusInfo" class="text-xs text-gray-500 mb-8 md:mb-5 px-3"></p>
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-center gap-4 w-full max-w-md">
+        <button id="ackAlertBtn"
+          class="w-full md:w-auto px-8 py-5 md:py-3 rounded-xl bg-red-600 text-white hover:bg-red-700 text-xl md:text-lg">Acknowledge</button>
+        <a id="openMapsBtn" href="#" target="_blank"
+          class="w-full md:w-auto px-8 py-5 md:py-3 rounded-xl bg-gray-900 text-white hover:bg-black text-xl md:text-lg hidden">Open
+          Location</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // Update admin control center counts
+    async function updateAdminCounts() {
+      try {
+        const response = await fetch('/api/admin/drivers/status');
+        const data = await response.json();
+
+        if (data.ok && data.drivers) {
+          const activeFeeds = data.drivers.filter(d => d.isMonitoring).length;
+          const liveDrivers = data.drivers.filter(d => d.isOnline).length;
+
+          const activeFeedsEl = document.getElementById('activeFeedsCount');
+          const liveDriversEl = document.getElementById('liveDriversCount');
+
+          if (activeFeedsEl) activeFeedsEl.textContent = activeFeeds;
+          if (liveDriversEl) liveDriversEl.textContent = liveDrivers;
+        }
+      } catch (e) {
+        console.error('Error updating admin counts:', e);
+      }
+    }
+
+    // Update counts every 3 seconds
+    setInterval(updateAdminCounts, 3000);
+    updateAdminCounts();
+    // Hamburger menu toggle + click-away
+    (function () {
+      const btn = document.getElementById('adminHamburgerBtn');
+      const menu = document.getElementById('adminHamburgerMenu');
+      btn?.addEventListener('click', (e) => { e.stopPropagation(); menu?.classList.toggle('hidden'); });
+      document.addEventListener('click', (e) => {
+        if (!menu || menu.classList.contains('hidden')) return;
+        const t = e.target;
+        if (!(t instanceof Element)) { menu.classList.add('hidden'); return; }
+        if (!menu.contains(t) && t !== btn) menu.classList.add('hidden');
+      });
+    })();
+
+    // ==================== MULTI-DRIVER MONITORING SYSTEM ====================
+    (function () {
+      let autoRefreshInterval = null;
+      let currentViewMode = 'grid';
+
+      // Sample driver data structure (will be replaced with real API call)
+      function generateMockDriverData() {
+        const drivers = [];
+        const statuses = ['online', 'offline', 'alert', 'drowsy', 'critical'];
+        const names = ['John Smith', 'Sarah Johnson', 'Mike Williams', 'Emily Brown', 'David Lee', 'Lisa Garcia'];
+
+        for (let i = 0; i < 6; i++) {
+          const status = statuses[Math.floor(Math.random() * statuses.length)];
+          const isOnline = status !== 'offline';
+          drivers.push({
+            id: `driver-${i + 1}`,
+            name: names[i] || `Driver ${i + 1}`,
+            email: `driver${i + 1}@example.com`,
+            status: status,
+            isOnline: isOnline,
+            lastActive: isOnline ? 'Just now' : `${Math.floor(Math.random() * 60) + 1} min ago`,
+            metrics: {
+              ear: isOnline ? (0.2 + Math.random() * 0.15).toFixed(3) : '--',
+              mar: isOnline ? (0.3 + Math.random() * 0.2).toFixed(3) : '--',
+              perclos: isOnline ? Math.floor(Math.random() * 30) + '%' : '--',
+              headTilt: isOnline ? `${Math.floor(Math.random() * 15)}°` : '--'
+            },
+            alertCount: status === 'drowsy' || status === 'critical' ? Math.floor(Math.random() * 5) + 1 : 0,
+            sessionTime: isOnline ? `${Math.floor(Math.random() * 4) + 1}h ${Math.floor(Math.random() * 60)}m` : '--'
+          });
+        }
+        return drivers;
+      }
+
+      // Fetch driver status from backend
+      async function fetchDriverStatus() {
+        try {
+          const response = await fetch('/api/admin/drivers/status');
+          const data = await response.json();
+
+          if (data.ok && data.drivers) {
+            // Only return real drivers from API - NO mock data fallback
+            return data.drivers;
+          }
+
+          // Return empty array if no drivers (don't use mock data)
+          console.warn('No driver data from API');
+          return [];
+        } catch (error) {
+          console.error('Error fetching driver status:', error);
+          // Return empty array on error (don't use mock data)
+          return [];
+        }
+      }
+
+      // Get driver initials from name
+      function getInitials(name) {
+        return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+      }
+
+      // Render detailed metric with time information
+      function renderDetailedMetric(label, metricData, metricKey) {
+        // Handle both old format (string) and new format (object)
+        let value, duration, lastUpdate, rawValue;
+        if (typeof metricData === 'object' && metricData !== null) {
+          value = metricData.value || '--';
+          duration = metricData.duration || '--';
+          lastUpdate = metricData.last_update || 'Never';
+          rawValue = metricData.raw || '--';
+        } else {
+          value = metricData || '--';
+          duration = '--';
+          lastUpdate = 'Never';
+          rawValue = metricData || '--';
+        }
+
+        // Determine if metric is in warning/danger state
+        let statusClass = '';
+        let statusIcon = '';
+        if (value !== '--' && rawValue !== '--') {
+          const numValue = parseFloat(rawValue);
+          if (metricKey === 'ear' && numValue < 0.25) {
+            statusClass = 'border-red-300 bg-red-50';
+            statusIcon = '<i class="ph ph-warning text-red-600 text-xs"></i>';
+          } else if (metricKey === 'perclos' && numValue > 0.2) {
+            statusClass = 'border-amber-300 bg-amber-50';
+            statusIcon = '<i class="ph ph-warning text-amber-600 text-xs"></i>';
+          } else if (metricKey === 'headTilt' && numValue > 15) {
+            statusClass = 'border-orange-300 bg-orange-50';
+            statusIcon = '<i class="ph ph-warning text-orange-600 text-xs"></i>';
+          }
+        }
+
+        return `
+          <div class="border rounded-lg p-2 ${statusClass} transition-all hover:shadow-sm">
+            <div class="flex items-center justify-between mb-1">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-semibold text-gray-700">${label}</span>
+                ${statusIcon}
+              </div>
+              <span class="text-sm font-bold text-slate-800">${value}</span>
+            </div>
+            <div class="flex items-center justify-between text-xs text-gray-500">
+              <span><i class="ph ph-clock"></i> ${lastUpdate}</span>
+              <span><i class="ph ph-timer"></i> ${duration}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // Generate driver card HTML
+      function createDriverCard(driver) {
+        const statusClass = driver.status;
+        const statusText = driver.status.charAt(0).toUpperCase() + driver.status.slice(1);
+        const onlineClass = driver.isOnline ? 'online' : 'offline';
+        const priorityDot = (driver.status === 'critical' || driver.status === 'drowsy') ?
+          '<span class="priority-indicator"></span>' : '';
+
+        // Use email as unique identifier (consistent with video feed system)
+        const driverIdentifier = driver.email || driver.id;
+        const driverName = driver.name || 'Unknown Driver';
+
+        return `
+          <div class="driver-card" data-driver-email="${driverIdentifier}" data-driver-name="${driverName}">
+            ${priorityDot}
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div class="driver-avatar ${onlineClass}">
+                  ${getInitials(driverName)}
+                </div>
+                <div>
+                  <div class="font-bold text-slate-800 text-sm">${driverName}</div>
+                  <div class="text-xs text-gray-500">${driverIdentifier}</div>
+                  <div class="last-active">
+                    <i class="ph ph-clock"></i>
+                    ${driver.lastActive || 'N/A'}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <span class="driver-status-badge ${statusClass}">
+                <i class="ph ph-circle-fill" style="font-size: 8px;"></i>
+                ${statusText}
+              </span>
+              ${driver.isMonitoring ? '<span class="ml-2 px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-semibold"><i class="ph ph-video-camera"></i> Monitoring</span>' : ''}
+            </div>
+
+            ${driver.isOnline ? `
+              <div class="space-y-2 mb-3">
+                ${renderDetailedMetric('EAR', driver.metrics.ear, 'ear')}
+                ${renderDetailedMetric('MAR', driver.metrics.mar, 'mar')}
+                ${renderDetailedMetric('PERCLOS', driver.metrics.perclos, 'perclos')}
+                ${renderDetailedMetric('Head Tilt', driver.metrics.headTilt, 'headTilt')}
+              </div>
+
+              <div class="driver-quick-actions">
+                <button class="driver-quick-action-btn" onclick="viewDriverFeed('${driverIdentifier}', '${driverName.replace(/'/g, "\\'")}', ${driver.isMonitoring})" title="View driver's video feed">
+                  <i class="ph ph-eye"></i>
+                  ${driver.isMonitoring ? 'Monitor' : 'View'}
+                </button>
+                <button class="driver-quick-action-btn" onclick="alertDriver('${driverIdentifier}', '${driverName.replace(/'/g, "\\'")}')">
+                  <i class="ph ph-bell"></i>
+                  Alert
+                </button>
+                ${driver.isMonitoring ? `
+                  <button class="driver-quick-action-btn" onclick="focusOnDriver('${driverIdentifier}', '${driverName.replace(/'/g, "\\'")}')">
+                    <i class="ph ph-arrows-in"></i>
+                    Focus
+                  </button>
+                ` : ''}
+              </div>
+            ` : `
+              <div class="text-center py-4 text-gray-400 text-sm">
+                <i class="ph ph-power text-2xl mb-1"></i>
+                <p>Driver is offline</p>
+              </div>
+            `}
+          </div>
+        `;
+      }
+
+      // Update statistics cards
+      function updateStatistics(drivers) {
+        const total = drivers.length;
+        const active = drivers.filter(d => d.isOnline).length;
+        const warning = drivers.filter(d => d.status === 'drowsy').length;
+        const critical = drivers.filter(d => d.status === 'critical').length;
+
+        document.getElementById('totalDrivers').textContent = total;
+        document.getElementById('activeDrivers').textContent = active;
+        document.getElementById('warningDrivers').textContent = warning;
+        document.getElementById('criticalAlerts').textContent = critical;
+      }
+
+      // Store all drivers for filtering
+      let allDrivers = [];
+      let currentSearchTerm = '';
+      let currentStatusFilter = 'all';
+
+      // Filter drivers based on search and status
+      function filterDrivers(drivers, searchTerm = '', statusFilter = 'all') {
+        let filtered = drivers;
+
+        // Apply search filter
+        if (searchTerm) {
+          const lowerSearch = searchTerm.toLowerCase();
+          filtered = filtered.filter(driver =>
+            (driver.name && driver.name.toLowerCase().includes(lowerSearch)) ||
+            (driver.email && driver.email.toLowerCase().includes(lowerSearch))
+          );
+        }
+
+        // Apply status filter
+        if (statusFilter !== 'all') {
+          filtered = filtered.filter(driver => {
+            if (statusFilter === 'online') return driver.isOnline;
+            if (statusFilter === 'offline') return !driver.isOnline;
+            if (statusFilter === 'monitoring') return driver.isMonitoring;
+            if (statusFilter === 'drowsy') return driver.status === 'drowsy';
+            if (statusFilter === 'critical') return driver.status === 'critical';
+            return true;
+          });
+        }
+
+        return filtered;
+      }
+
+      // Render driver grid
+      function renderDriverGrid(drivers, applyFilters = true) {
+        const container = document.getElementById('driversGridContainer');
+
+        // Store all drivers for filtering
+        if (!applyFilters) {
+          allDrivers = drivers;
+        }
+
+        // Apply filters if enabled
+        const displayDrivers = applyFilters ? filterDrivers(drivers, currentSearchTerm, currentStatusFilter) : drivers;
+
+        if (displayDrivers.length === 0) {
+          const message = drivers.length === 0 ?
+            'No drivers registered yet' :
+            'No drivers match your search criteria';
+          const subMessage = drivers.length === 0 ?
+            'Drivers will appear here once they register and log in' :
+            'Try adjusting your search or filters';
+
+          container.innerHTML = `
+            <div class="col-span-full drivers-empty-state">
+              <i class="ph ph-${drivers.length === 0 ? 'users-three' : 'magnifying-glass'}"></i>
+              <p class="text-lg font-semibold">${message}</p>
+              <p class="text-sm mt-2">${subMessage}</p>
+              ${drivers.length > 0 ? '<button onclick="clearDriverFilters()" class="mt-3 px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700">Clear Filters</button>' : ''}
+            </div>
+          `;
+          return;
+        }
+
+        // Apply view mode class
+        container.className = currentViewMode === 'list' ? 'driver-list-view space-y-4' :
+          currentViewMode === 'compact' ? 'driver-compact-view grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3' :
+            'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4';
+
+        container.innerHTML = displayDrivers.map(driver => createDriverCard(driver)).join('');
+
+        // Add click handlers to driver cards for quick access
+        setTimeout(() => {
+          const cards = container.querySelectorAll('.driver-card');
+          cards.forEach(card => {
+            const email = card.dataset.driverEmail;
+            const name = card.dataset.driverName;
+            const driver = displayDrivers.find(d => d.email === email || d.id === email);
+
+            // Make card header clickable to view feed
+            const header = card.querySelector('.flex.items-start');
+            if (header && driver && driver.isMonitoring) {
+              header.style.cursor = 'pointer';
+              header.addEventListener('click', (e) => {
+                // Don't trigger if clicking on buttons
+                if (!e.target.closest('button')) {
+                  viewDriverFeed(email, name, driver.isMonitoring);
+                }
+              });
+              // Add hover effect
+              header.classList.add('hover:bg-gray-50', 'rounded-lg', 'p-2', '-m-2', 'transition');
+            }
+          });
+        }, 100);
+      }
+
+      // Clear all filters
+      window.clearDriverFilters = function () {
+        currentSearchTerm = '';
+        currentStatusFilter = 'all';
+        document.getElementById('driverSearchInput').value = '';
+        document.getElementById('statusFilterSelect').value = 'all';
+        renderDriverGrid(allDrivers, true);
+      };
+
+      // Filter by status from statistics cards
+      window.filterByStatus = function (status) {
+        currentStatusFilter = status;
+        currentSearchTerm = '';
+        document.getElementById('driverSearchInput').value = '';
+        document.getElementById('statusFilterSelect').value = status;
+        renderDriverGrid(allDrivers, true);
+
+        // Scroll to driver grid
+        const driverGrid = document.getElementById('driversGridContainer');
+        if (driverGrid) {
+          driverGrid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Show notification
+        const statusLabels = {
+          all: 'All Drivers',
+          online: 'Online Drivers',
+          offline: 'Offline Drivers',
+          monitoring: 'Monitoring Drivers',
+          drowsy: 'Drowsy Drivers',
+          critical: 'Critical Drivers'
+        };
+        showNotification(`Filtered to show: ${statusLabels[status] || status}`, 'info');
+      };
+
+      // Refresh driver data
+      async function refreshDrivers() {
+        const refreshBtn = document.getElementById('refreshDriversBtn');
+        const icon = refreshBtn?.querySelector('i');
+
+        if (icon) {
+          icon.classList.add('refresh-spinning');
+        }
+
+        const drivers = await fetchDriverStatus();
+        updateStatistics(drivers);
+        allDrivers = drivers; // Store for filtering
+        renderDriverGrid(drivers, true);
+
+        setTimeout(() => {
+          if (icon) {
+            icon.classList.remove('refresh-spinning');
+          }
+        }, 1000);
+      }
+
+      // Toggle auto-refresh
+      function toggleAutoRefresh() {
+        if (autoRefreshInterval) {
+          clearInterval(autoRefreshInterval);
+          autoRefreshInterval = null;
+          document.getElementById('autoRefreshStatus').textContent = 'OFF';
+          document.getElementById('autoRefreshStatus').className = 'font-semibold text-gray-600';
+        } else {
+          autoRefreshInterval = setInterval(refreshDrivers, 5000); // Refresh every 5 seconds
+          document.getElementById('autoRefreshStatus').textContent = 'ON';
+          document.getElementById('autoRefreshStatus').className = 'font-semibold text-green-600';
+        }
+      }
+
+      // Global functions for driver actions
+
+      // View driver's video feed (connects to Remote Monitoring section)
+      window.viewDriverFeed = function (driverEmail, driverName, isMonitoring) {
+        if (!isMonitoring) {
+          showNotification(`${driverName} is not currently monitoring. Video feed unavailable.`, 'warning');
+          return;
+        }
+
+        // Scroll to the Remote Driver Monitoring section
+        const monitoringSection = document.querySelector('[id*="videoFeed"]')?.closest('section');
+        if (monitoringSection) {
+          monitoringSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Select the driver in the dropdown
+        const driverSelect = document.getElementById('driverSelectMonitor');
+        if (driverSelect) {
+          // First, check if the driver exists in the dropdown
+          const option = Array.from(driverSelect.options).find(opt => opt.value === driverEmail);
+
+          if (option) {
+            driverSelect.value = driverEmail;
+            // Trigger change event to load the video feed
+            driverSelect.dispatchEvent(new Event('change'));
+            showNotification(`Now monitoring: ${driverName}`, 'success');
+          } else {
+            // Driver not in dropdown yet, might need to wait for populateDriverSelector
+            setTimeout(() => {
+              const refreshedOption = Array.from(driverSelect.options).find(opt => opt.value === driverEmail);
+              if (refreshedOption) {
+                driverSelect.value = driverEmail;
+                driverSelect.dispatchEvent(new Event('change'));
+                showNotification(`Now monitoring: ${driverName}`, 'success');
+              } else {
+                showNotification(`${driverName} feed not available in dropdown yet`, 'warning');
+              }
+            }, 500);
+          }
+        }
+      };
+
+      // Send alert notification to driver
+      window.alertDriver = async function (driverEmail, driverName) {
+        if (!confirm(`Send alert notification to ${driverName}?\n\nThis will:\n• Send SMS to emergency contacts\n• Play audio alert\n• Log the event`)) {
+          return;
+        }
+
+        try {
+          // Send alert via backend API
+          const response = await fetch('/api/admin/alert-driver', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({
+              driverEmail: driverEmail,
+              driverName: driverName,
+              alertType: 'manual_admin_alert',
+              message: 'Admin has sent you an alert notification'
+            })
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.ok) {
+            showNotification(`Alert sent to ${driverName} successfully!`, 'success');
+          } else {
+            showNotification(data.error || `Failed to send alert to ${driverName}`, 'error');
+          }
+        } catch (error) {
+          console.error('Error sending alert:', error);
+          showNotification(`Error sending alert to ${driverName}`, 'error');
+        }
+      };
+
+      // Focus on specific driver (scroll to multi-feed and highlight)
+      window.focusOnDriver = function (driverEmail, driverName) {
+        // Scroll to multi-feed section
+        const multiFeedSection = document.getElementById('multiFeedContainer');
+        if (multiFeedSection) {
+          multiFeedSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+          // Highlight the specific driver card in multi-feed if it exists
+          setTimeout(() => {
+            const feedCards = multiFeedSection.querySelectorAll('.feed-card');
+            feedCards.forEach(card => {
+              const cardEmail = card.querySelector('img')?.src.includes(encodeURIComponent(driverEmail));
+              if (cardEmail) {
+                card.style.outline = '3px solid #3B82F6';
+                card.style.outlineOffset = '2px';
+                setTimeout(() => {
+                  card.style.outline = '';
+                  card.style.outlineOffset = '';
+                }, 2000);
+              }
+            });
+          }, 500);
+
+          showNotification(`Focused on ${driverName} in multi-feed grid`, 'info');
+        }
+      };
+
+      // Initialize
+      document.addEventListener('DOMContentLoaded', function () {
+        // Initial load
+        refreshDrivers();
+
+        // Start auto-refresh
+        autoRefreshInterval = setInterval(refreshDrivers, 5000);
+
+        // Refresh button
+        const refreshBtn = document.getElementById('refreshDriversBtn');
+        refreshBtn?.addEventListener('click', refreshDrivers);
+
+        // View mode selector
+        const viewModeSelect = document.getElementById('viewModeSelect');
+        viewModeSelect?.addEventListener('change', function (e) {
+          currentViewMode = e.target.value;
+          renderDriverGrid(allDrivers, true);
+        });
+
+        // Auto-refresh toggle (clicking on the status)
+        const autoRefreshStatus = document.getElementById('autoRefreshStatus');
+        autoRefreshStatus?.addEventListener('click', toggleAutoRefresh);
+        autoRefreshStatus.style.cursor = 'pointer';
+
+        // Search input
+        const searchInput = document.getElementById('driverSearchInput');
+        searchInput?.addEventListener('input', function (e) {
+          currentSearchTerm = e.target.value;
+          renderDriverGrid(allDrivers, true);
+        });
+
+        // Status filter
+        const statusFilter = document.getElementById('statusFilterSelect');
+        statusFilter?.addEventListener('change', function (e) {
+          currentStatusFilter = e.target.value;
+          renderDriverGrid(allDrivers, true);
+        });
+
+        // Clear filters button
+        const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+        clearFiltersBtn?.addEventListener('click', clearDriverFilters);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function (e) {
+          // Ctrl/Cmd + K to focus search
+          if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            searchInput?.focus();
+          }
+          // Escape to clear search
+          if (e.key === 'Escape' && document.activeElement === searchInput) {
+            clearDriverFilters();
+          }
+        });
+      });
+
+      // Cleanup on page unload
+      window.addEventListener('beforeunload', () => {
+        if (autoRefreshInterval) {
+          clearInterval(autoRefreshInterval);
+        }
+      });
+    })();
+
+    // ==================== CONTACT MANAGEMENT SYSTEM ====================
+    (function () {
+      let allContacts = [];
+
+      // Fetch contacts from backend
+      async function fetchContacts() {
+        try {
+          const response = await fetch('/contacts');
+          const data = await response.json();
+          allContacts = data || [];
+          renderContactsTable(allContacts);
+          updateContactStats(allContacts);
+        } catch (error) {
+          console.error('Error fetching contacts:', error);
+          showNotification('Failed to load contacts', 'error');
+        }
+      }
+
+      // Render contacts table
+      function renderContactsTable(contacts) {
+        const tbody = document.getElementById('contactsTableBody');
+        const countBadge = document.getElementById('contactCount');
+
+        countBadge.textContent = `${contacts.length} contact${contacts.length !== 1 ? 's' : ''}`;
+
+        if (contacts.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="text-center py-12 text-gray-400">
+                <i class="ph ph-user-plus text-4xl mb-3 block mx-auto"></i>
+                <p>No contacts yet. Click "Add Contact" to get started.</p>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = contacts.map((contact, index) => {
+          const priority = contact.priority || 'normal';
+          const priorityColors = {
+            high: 'bg-red-100 text-red-700',
+            normal: 'bg-orange-100 text-orange-700',
+            low: 'bg-gray-100 text-gray-700'
+          };
+          const statusColors = {
+            active: 'bg-green-100 text-green-700',
+            inactive: 'bg-gray-100 text-gray-600'
+          };
+          const status = contact.active !== false ? 'active' : 'inactive';
+
+          // Build contact methods display
+          const methods = [];
+          if (contact.phone) methods.push(`<div class="flex items-center gap-1 text-xs"><i class="ph ph-device-mobile"></i> ${contact.phone}</div>`);
+          if (contact.email) methods.push(`<div class="flex items-center gap-1 text-xs"><i class="ph ph-envelope"></i> ${contact.email}</div>`);
+          if (contact.telegram) methods.push(`<div class="flex items-center gap-1 text-xs"><i class="ph ph-telegram-logo"></i> ${contact.telegram}</div>`);
+          const methodsHTML = methods.length > 0 ? methods.join('') : '<span class="text-gray-400 text-xs">None</span>';
+
+          return `
+            <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
+              <td class="py-3 px-4">
+                <div class="font-semibold text-gray-800">${contact.name || 'Unnamed'}</div>
+                ${contact.relationship ? `<div class="text-xs text-gray-500">${contact.relationship}</div>` : ''}
+              </td>
+              <td class="py-3 px-4">
+                <div class="space-y-1">
+                  ${methodsHTML}
+                </div>
+              </td>
+              <td class="py-3 px-4">
+                <span class="px-2 py-1 rounded-full text-xs font-semibold ${priorityColors[priority] || priorityColors.normal}">
+                  ${priority.toUpperCase()}
+                </span>
+              </td>
+              <td class="py-3 px-4">
+                <span class="px-2 py-1 rounded-full text-xs font-semibold ${statusColors[status]}">
+                  ${status.charAt(0).toUpperCase() + status.slice(1)}
+                </span>
+              </td>
+              <td class="py-3 px-4 text-center">
+                <div class="flex items-center justify-center gap-2">
+                  <button onclick="editContact(${index})" class="px-2 py-1 text-orange-600 hover:bg-orange-50 rounded transition" title="Edit">
+                    <i class="ph ph-pencil-simple"></i>
+                  </button>
+                  <button onclick="deleteContact(${index}, '${contact.name}')" class="px-2 py-1 text-red-600 hover:bg-red-50 rounded transition" title="Delete">
+                    <i class="ph ph-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      // Update contact statistics
+      function updateContactStats(contacts) {
+        const total = contacts.length;
+        const highPriority = contacts.filter(c => c.priority === 'high').length;
+        const active = contacts.filter(c => c.active !== false).length;
+
+        document.getElementById('statTotalContacts').textContent = total;
+        document.getElementById('statHighPriority').textContent = highPriority;
+        document.getElementById('statActiveContacts').textContent = active;
+      }
+
+      // Add/Edit contact modal
+      function showContactModal(contactIndex = null) {
+        const isEdit = contactIndex !== null;
+        const contact = isEdit ? allContacts[contactIndex] : {};
+
+        const modalHTML = `
+          <div id="contactModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <i class="ph ph-${isEdit ? 'pencil' : 'plus'}-circle text-orange-600"></i>
+                  ${isEdit ? 'Edit' : 'Add'} Contact
+                </h3>
+                <button onclick="closeContactModal()" class="text-gray-400 hover:text-gray-600">
+                  <i class="ph ph-x text-2xl"></i>
+                </button>
+              </div>
+              
+              <form id="contactForm" class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                  <input type="text" id="contactName" value="${contact.name || ''}" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-400">
+                </div>
+                
+                <!-- Contact Methods Section -->
+                <div class="border-t border-b border-gray-200 py-3 space-y-3">
+                  <p class="text-sm font-medium text-gray-700 mb-2">Contact Methods (at least one required)</p>
+                  
+                  <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1 flex items-center gap-1">
+                      <i class="ph ph-device-mobile"></i> Phone Number (SMS - Paid)
+                    </label>
+                    <input type="tel" id="contactPhone" value="${contact.phone || ''}" placeholder="+1234567890" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-400">
+                    <p class="text-xs text-gray-500 mt-1">For SMS alerts (requires Twilio - paid service)</p>
+                  </div>
+                  
+                  <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1 flex items-center gap-1">
+                      <i class="ph ph-envelope"></i> Email Address (FREE)
+                    </label>
+                    <input type="email" id="contactEmail" value="${contact.email || ''}" placeholder="example@email.com" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-400">
+                    <p class="text-xs text-green-600 mt-1">✓ FREE - Email notifications via SMTP</p>
+                  </div>
+                  
+                  <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1 flex items-center gap-1">
+                      <i class="ph ph-telegram-logo"></i> Telegram Chat ID (FREE)
+                    </label>
+                    <input type="text" id="contactTelegram" value="${contact.telegram || ''}" placeholder="123456789" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-400">
+                    <p class="text-xs text-green-600 mt-1">✓ FREE - Get your Chat ID from @userinfobot on Telegram</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Relationship</label>
+                  <input type="text" id="contactRelationship" value="${contact.relationship || ''}" placeholder="e.g., Family, Emergency Services" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-400">
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                  <select id="contactPriority" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-400">
+                    <option value="high" ${contact.priority === 'high' ? 'selected' : ''}>High</option>
+                    <option value="normal" ${!contact.priority || contact.priority === 'normal' ? 'selected' : ''}>Normal</option>
+                    <option value="low" ${contact.priority === 'low' ? 'selected' : ''}>Low</option>
+                  </select>
+                </div>
+                
+                <div class="flex items-center">
+                  <input type="checkbox" id="contactActive" ${contact.active !== false ? 'checked' : ''} class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500">
+                  <label for="contactActive" class="ml-2 text-sm text-gray-700">Active (will receive alerts)</label>
+                </div>
+                
+                <div class="flex gap-3 pt-4">
+                  <button type="submit" class="flex-1 px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition font-semibold">
+                    ${isEdit ? 'Update' : 'Add'} Contact
+                  </button>
+                  <button type="button" onclick="closeContactModal()" class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        document.getElementById('contactForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          await saveContact(contactIndex);
+        });
+      }
+
+      // Save contact
+      async function saveContact(contactIndex) {
+        const name = document.getElementById('contactName').value.trim();
+        const phone = document.getElementById('contactPhone').value.trim();
+        const email = document.getElementById('contactEmail').value.trim();
+        const telegram = document.getElementById('contactTelegram').value.trim();
+
+        // Validation: at least one contact method required
+        if (!phone && !email && !telegram) {
+          showNotification('Please provide at least one contact method (Phone, Email, or Telegram)', 'error');
+          return;
+        }
+
+        const contactData = {
+          name: name,
+          phone: phone,
+          email: email,
+          telegram: telegram,
+          relationship: document.getElementById('contactRelationship').value,
+          priority: document.getElementById('contactPriority').value,
+          active: document.getElementById('contactActive').checked
+        };
+
+        try {
+          const isEdit = contactIndex !== null;
+          const url = isEdit ? `/contacts/${contactIndex}` : '/contacts';
+          const method = isEdit ? 'PUT' : 'POST';
+
+          const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(contactData)
+          });
+
+          if (response.ok) {
+            showNotification(`Contact ${isEdit ? 'updated' : 'added'} successfully!`, 'success');
+            closeContactModal();
+            fetchContacts();
+          } else {
+            showNotification('Failed to save contact', 'error');
+          }
+        } catch (error) {
+          console.error('Error saving contact:', error);
+          showNotification('Error saving contact', 'error');
+        }
+      }
+
+      // Delete contact
+      window.deleteContact = async function (index, name) {
+        if (!confirm(`Are you sure you want to delete contact "${name}"?`)) return;
+
+        try {
+          const response = await fetch(`/contacts/${index}`, { method: 'DELETE' });
+          if (response.ok) {
+            showNotification('Contact deleted successfully!', 'success');
+            fetchContacts();
+          } else {
+            showNotification('Failed to delete contact', 'error');
+          }
+        } catch (error) {
+          console.error('Error deleting contact:', error);
+          showNotification('Error deleting contact', 'error');
+        }
+      };
+
+      // Edit contact
+      window.editContact = function (index) {
+        showContactModal(index);
+      };
+
+      // Close modal
+      window.closeContactModal = function () {
+        const modal = document.getElementById('contactModal');
+        if (modal) modal.remove();
+      };
+
+      // Search contacts
+      document.getElementById('contactSearchInput')?.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filtered = allContacts.filter(contact =>
+          contact.name?.toLowerCase().includes(searchTerm) ||
+          contact.phone?.toLowerCase().includes(searchTerm) ||
+          contact.email?.toLowerCase().includes(searchTerm) ||
+          contact.telegram?.toLowerCase().includes(searchTerm) ||
+          contact.relationship?.toLowerCase().includes(searchTerm)
+        );
+        renderContactsTable(filtered);
+      });
+
+      // Add contact button
+      document.getElementById('addContactBtn')?.addEventListener('click', () => showContactModal());
+
+
+      // Initialize
+      fetchContacts();
+    })();
+
+    // ==================== SYSTEM CONFIGURATION ====================
+    (function () {
+      // Sync slider and number input
+      function syncInputs(sliderId, valueId) {
+        const slider = document.getElementById(sliderId);
+        const valueInput = document.getElementById(valueId);
+
+        slider?.addEventListener('input', (e) => {
+          valueInput.value = e.target.value;
+        });
+
+        valueInput?.addEventListener('input', (e) => {
+          slider.value = e.target.value;
+        });
+      }
+
+      // Initialize input syncing
+      syncInputs('earThresholdSlider', 'earThresholdValue');
+      syncInputs('marThresholdSlider', 'marThresholdValue');
+      syncInputs('tiltThresholdSlider', 'tiltThresholdValue');
+      syncInputs('perclosThresholdSlider', 'perclosThresholdValue');
+      syncInputs('framesThresholdSlider', 'framesThresholdValue');
+
+      // Sync metric timer inputs
+      syncInputs('earTimerSlider', 'earTimerValue');
+      syncInputs('marTimerSlider', 'marTimerValue');
+      syncInputs('tiltTimerSlider', 'tiltTimerValue');
+      syncInputs('perclosTimerSlider', 'perclosTimerValue');
+
+      // Load current settings from backend
+      async function loadSettings() {
+        try {
+          const response = await fetch('/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}) // Empty POST to get current settings
+          });
+          if (response.ok) {
+            const settings = await response.json();
+            // Update UI with current values
+            if (settings.earThreshold !== undefined) {
+              document.getElementById('earThresholdSlider').value = settings.earThreshold;
+              document.getElementById('earThresholdValue').value = settings.earThreshold;
+            }
+            if (settings.marThreshold !== undefined) {
+              document.getElementById('marThresholdSlider').value = settings.marThreshold;
+              document.getElementById('marThresholdValue').value = settings.marThreshold;
+            }
+            if (settings.tiltThreshold !== undefined) {
+              document.getElementById('tiltThresholdSlider').value = settings.tiltThreshold;
+              document.getElementById('tiltThresholdValue').value = settings.tiltThreshold;
+            }
+            if (settings.perclosThreshold !== undefined) {
+              document.getElementById('perclosThresholdSlider').value = settings.perclosThreshold;
+              document.getElementById('perclosThresholdValue').value = settings.perclosThreshold;
+            }
+            if (settings.framesBelow !== undefined) {
+              document.getElementById('framesThresholdSlider').value = settings.framesBelow;
+              document.getElementById('framesThresholdValue').value = settings.framesBelow;
+            }
+            if (settings.iotEnabled !== undefined) {
+              document.getElementById('iotToggle').checked = settings.iotEnabled;
+              toggleSerialPortSection(settings.iotEnabled);
+            }
+
+            // Load metric timer settings
+            if (settings.metricTimers) {
+              const timers = settings.metricTimers;
+              if (timers.ear !== undefined) {
+                document.getElementById('earTimerSlider').value = timers.ear;
+                document.getElementById('earTimerValue').value = timers.ear;
+              }
+              if (timers.mar !== undefined) {
+                document.getElementById('marTimerSlider').value = timers.mar;
+                document.getElementById('marTimerValue').value = timers.mar;
+              }
+              if (timers.tilt !== undefined) {
+                document.getElementById('tiltTimerSlider').value = timers.tilt;
+                document.getElementById('tiltTimerValue').value = timers.tilt;
+              }
+              if (timers.perclos !== undefined) {
+                document.getElementById('perclosTimerSlider').value = timers.perclos;
+                document.getElementById('perclosTimerValue').value = timers.perclos;
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error loading settings:', error);
+        }
+      }
+
+      // Load serial ports
+      async function loadSerialPorts() {
+        try {
+          const response = await fetch('/serial_ports');
+          const ports = await response.json();
+          const select = document.getElementById('serialPortSelect');
+
+          select.innerHTML = '<option value="">Select a port...</option>';
+          ports.forEach(port => {
+            const option = document.createElement('option');
+            option.value = port.device;
+            option.textContent = `${port.device} - ${port.description}`;
+            select.appendChild(option);
+          });
+        } catch (error) {
+          console.error('Error loading serial ports:', error);
+        }
+      }
+
+      // Toggle serial port section
+      function toggleSerialPortSection(show) {
+        const section = document.getElementById('serialPortSection');
+        if (show) {
+          section.classList.remove('hidden');
+          loadSerialPorts();
+        } else {
+          section.classList.add('hidden');
+        }
+      }
+
+      // IoT toggle handler
+      document.getElementById('iotToggle')?.addEventListener('change', (e) => {
+        toggleSerialPortSection(e.target.checked);
+      });
+
+      // Save detection settings
+      document.getElementById('saveDetectionSettingsBtn')?.addEventListener('click', async () => {
+        const settings = {
+          earThreshold: parseFloat(document.getElementById('earThresholdValue').value),
+          marThreshold: parseFloat(document.getElementById('marThresholdValue').value),
+          tiltThreshold: parseFloat(document.getElementById('tiltThresholdValue').value),
+          perclosThreshold: parseFloat(document.getElementById('perclosThresholdValue').value),
+          framesBelow: parseInt(document.getElementById('framesThresholdValue').value),
+          // Add metric timer settings
+          earThresholdDuration: parseInt(document.getElementById('earTimerValue').value),
+          marThresholdDuration: parseInt(document.getElementById('marTimerValue').value),
+          tiltThresholdDuration: parseInt(document.getElementById('tiltTimerValue').value),
+          perclosThresholdDuration: parseInt(document.getElementById('perclosTimerValue').value)
+        };
+
+        try {
+          const response = await fetch('/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(settings)
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            showNotification('Detection settings saved successfully! Applied to all active drivers.', 'success');
+            console.log('Updated settings:', data);
+          } else {
+            showNotification('Failed to save settings', 'error');
+          }
+        } catch (error) {
+          console.error('Error saving settings:', error);
+          showNotification('Error saving settings', 'error');
+        }
+      });
+
+      // Save alert settings
+      document.getElementById('saveAlertSettingsBtn')?.addEventListener('click', async () => {
+        const settings = {
+          iotEnabled: document.getElementById('iotToggle').checked,
+          serialPort: document.getElementById('serialPortSelect').value,
+          alertSound: document.getElementById('alertSoundToggle').checked,
+          smsAlerts: document.getElementById('smsAlertsToggle').checked,
+          alertCooldown: parseInt(document.getElementById('alertCooldownInput').value) || 30,
+          maxAlertCount: parseInt(document.getElementById('maxAlertCountInput').value) || 5
+        };
+
+        try {
+          const response = await fetch('/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(settings)
+          });
+
+          if (response.ok) {
+            // Also save to localStorage for immediate use
+            try {
+              const alertPrefs = JSON.parse(localStorage.getItem('alertPrefs') || '{}');
+              alertPrefs.alertCooldown = settings.alertCooldown;
+              alertPrefs.maxAlertCount = settings.maxAlertCount;
+              localStorage.setItem('alertPrefs', JSON.stringify(alertPrefs));
+            } catch (e) {
+              console.error('Error saving to localStorage:', e);
+            }
+
+            showNotification('Alert settings saved successfully!', 'success');
+          } else {
+            showNotification('Failed to save settings', 'error');
+          }
+        } catch (error) {
+          console.error('Error saving settings:', error);
+          showNotification('Error saving settings', 'error');
+        }
+      });
+
+      // Load alert frequency settings from localStorage
+      function loadAlertFrequencySettings() {
+        try {
+          const alertPrefs = JSON.parse(localStorage.getItem('alertPrefs') || '{}');
+          if (alertPrefs.alertCooldown !== undefined) {
+            document.getElementById('alertCooldownInput').value = alertPrefs.alertCooldown;
+          }
+          if (alertPrefs.maxAlertCount !== undefined) {
+            document.getElementById('maxAlertCountInput').value = alertPrefs.maxAlertCount;
+          }
+        } catch (e) {
+          console.error('Error loading alert frequency settings:', e);
+        }
+      }
+
+      // Initialize
+      loadSettings();
+      loadAlertFrequencySettings();
+    })();
+
+    // ==================== ADMIN REMOTE MONITORING ====================
+    (function () {
+      let monitoringStartTime = null;
+      let durationInterval = null;
+
+      // Toggle detection overlay
+      document.getElementById('toggleDetectionOverlay')?.addEventListener('click', () => {
+        const overlay = document.getElementById('detectionOverlay');
+        overlay?.classList.toggle('hidden');
+      });
+
+      // Take snapshot
+      document.getElementById('takeSnapshotBtn')?.addEventListener('click', () => {
+        const videoFeed = document.getElementById('videoFeed');
+        if (!videoFeed || !videoFeed.src) {
+          showNotification('No video feed available for snapshot', 'warning');
+          return;
+        }
+
+        // Create a canvas to capture the current frame
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = videoFeed.naturalWidth || 640;
+        canvas.height = videoFeed.naturalHeight || 480;
+
+        // Draw the current frame
+        ctx.drawImage(videoFeed, 0, 0, canvas.width, canvas.height);
+
+        // Download as image
+        canvas.toBlob((blob) => {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `driver-snapshot-${new Date().toISOString()}.png`;
+          link.click();
+          URL.revokeObjectURL(url);
+          showNotification('Snapshot captured successfully!', 'success');
+        });
+      });
+
+      // Update monitoring duration
+      function updateDuration() {
+        if (!monitoringStartTime) return;
+        const now = Date.now();
+        const diff = now - monitoringStartTime;
+        const minutes = Math.floor(diff / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+        const durationEl = document.getElementById('monitoringDuration');
+        if (durationEl) {
+          durationEl.textContent = `Duration: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+      }
+
+      // Video feed load handling is done in initializeVideoFeed() and driver selection handler
+
+      // Populate driver selector with drivers from multi-driver monitoring
+      async function populateDriverSelector() {
+        try {
+          const response = await fetch('/api/admin/drivers/status');
+          const data = await response.json();
+
+          if (data.ok && data.drivers) {
+            const select = document.getElementById('driverSelectMonitor');
+            const currentValue = select.value; // Remember current selection
+
+            // Add only drivers who are actively monitoring
+            const monitoringDrivers = data.drivers.filter(d => d.isMonitoring);
+
+            // Clear all options
+            select.innerHTML = `
+              <option value="">Select driver to monitor...</option>
+            `;
+
+            // Only show "Current System Feed" option if NO drivers are monitoring
+            if (monitoringDrivers.length === 0) {
+              const currentOption = document.createElement('option');
+              currentOption.value = 'current';
+              currentOption.textContent = 'Current System Feed';
+              select.appendChild(currentOption);
+
+              const option = document.createElement('option');
+              option.disabled = true;
+              option.textContent = '(No drivers monitoring)';
+              select.appendChild(option);
+            } else {
+              // When drivers are monitoring, disable admin camera option
+              // Add all monitoring drivers
+              monitoringDrivers.forEach(driver => {
+                const option = document.createElement('option');
+                option.value = driver.email; // Use email instead of ID
+
+                // Show status with color indicator
+                const statusEmoji = driver.status === 'drowsy' ? '🔴' :
+                  driver.status === 'alert' ? '🟢' : '⚪';
+                option.textContent = `${statusEmoji} ${driver.name} (${driver.status.toUpperCase()})`;
+                select.appendChild(option);
+              });
+
+              // If currently viewing admin camera or no selection, automatically switch to first driver
+              if (currentValue === 'current' || !currentValue || currentValue === '') {
+                // Stop admin camera feed immediately
+                const videoFeed = document.getElementById('videoFeed');
+                if (videoFeed && videoFeed.src && videoFeed.src.includes('/video_feed?') && !videoFeed.src.includes('/video_feed/')) {
+                  videoFeed.src = '';
+                }
+
+                // Auto-select first monitoring driver
+                select.value = monitoringDrivers[0].email;
+                // Trigger change event to switch feed
+                select.dispatchEvent(new Event('change'));
+              }
+            }
+
+            // Restore previous selection if it still exists and is valid
+            if (currentValue && currentValue !== 'current' && Array.from(select.options).some(opt => opt.value === currentValue)) {
+              select.value = currentValue;
+            }
+          }
+        } catch (error) {
+          console.error('Error loading drivers:', error);
+        }
+      }
+
+      // Driver selection change handler
+      document.getElementById('driverSelectMonitor')?.addEventListener('change', (e) => {
+        const driverEmail = e.target.value;
+        const driverInfo = document.getElementById('monitoredDriverInfo');
+        const videoFeed = document.getElementById('videoFeed');
+        const videoPlaceholder = document.getElementById('videoPlaceholder');
+        const adminOverlay = document.getElementById('adminOverlayInfo');
+
+        // Reset monitoring timer when switching feeds
+        if (durationInterval) {
+          clearInterval(durationInterval);
+          durationInterval = null;
+        }
+        monitoringStartTime = null;
+
+        // Stop any admin camera feed when switching (prevent camera access)
+        if (videoFeed && videoFeed.src && videoFeed.src.includes('/video_feed?') && !videoFeed.src.includes('/video_feed/')) {
+          videoFeed.src = '';
+        }
+
+        if (!driverEmail) {
+          // No selection - show placeholder
+          if (videoFeed) {
+            videoFeed.classList.add('hidden');
+            videoFeed.src = '';
+          }
+          if (videoPlaceholder) videoPlaceholder.classList.remove('hidden');
+          if (adminOverlay) adminOverlay.classList.add('hidden');
+          if (driverInfo) driverInfo.textContent = 'Driver: None';
+
+          // Hide metrics section
+          const metricsSection = document.getElementById('adminMetricsSection');
+          if (metricsSection) metricsSection.classList.add('hidden');
+        } else if (driverEmail === 'current') {
+          // Check if any drivers are monitoring - if so, prevent admin camera access
+          fetch('/api/admin/drivers/status')
+            .then(r => r.json())
+            .then(data => {
+              const monitoringDrivers = (data.drivers || []).filter(d => d.isMonitoring);
+
+              if (monitoringDrivers.length > 0) {
+                // Drivers are monitoring - prevent admin camera and switch to first driver
+                showNotification('Cannot use admin camera while drivers are monitoring. Switching to driver feed.', 'warning');
+                e.target.value = monitoringDrivers[0].email;
+                e.target.dispatchEvent(new Event('change'));
+                return;
+              }
+
+              // No drivers monitoring - allow admin camera
+              if (driverInfo) driverInfo.textContent = 'Driver: System Feed';
+
+              // Hide metrics section for admin camera
+              const metricsSection = document.getElementById('adminMetricsSection');
+              if (metricsSection) metricsSection.classList.add('hidden');
+
+              if (videoFeed) {
+                // Remove old src to prevent memory leaks
+                videoFeed.src = '';
+
+                // Use MJPEG stream without cache-busting parameter
+                const feedUrl = '/video_feed';
+                videoFeed.src = feedUrl;
+
+                // Optimize image loading for streaming
+                videoFeed.loading = 'eager';
+                videoFeed.decoding = 'async';
+
+                videoFeed.classList.remove('hidden');
+                if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
+                if (adminOverlay) adminOverlay.classList.remove('hidden');
+
+                // Start monitoring timer
+                monitoringStartTime = Date.now();
+                durationInterval = setInterval(updateDuration, 1000);
+              }
+              showNotification('Monitoring: System Feed (Admin Camera)', 'info');
+            })
+            .catch(() => {
+              // Fallback: allow admin camera if API fails
+              if (driverInfo) driverInfo.textContent = 'Driver: System Feed';
+              if (videoFeed) {
+                // Remove old src to prevent memory leaks
+                videoFeed.src = '';
+
+                // Use MJPEG stream without cache-busting parameter
+                const feedUrl = '/video_feed';
+                videoFeed.src = feedUrl;
+
+                // Optimize image loading for streaming
+                videoFeed.loading = 'eager';
+                videoFeed.decoding = 'async';
+
+                videoFeed.classList.remove('hidden');
+                if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
+                if (adminOverlay) adminOverlay.classList.remove('hidden');
+                monitoringStartTime = Date.now();
+                durationInterval = setInterval(updateDuration, 1000);
+              }
+            });
+        } else {
+          // Switch to selected driver's feed
+          const selectedOption = e.target.options[e.target.selectedIndex];
+          const driverName = selectedOption.textContent.replace(/^[🟢🔴⚪]\s*/, '').split(' (')[0]; // Remove emoji and status
+
+          if (driverInfo) driverInfo.textContent = `Driver: ${driverName}`;
+
+          // Show metrics section for driver monitoring
+          const metricsSection = document.getElementById('adminMetricsSection');
+          if (metricsSection) metricsSection.classList.remove('hidden');
+
+          // Load driver's video feed using URL-encoded email
+          if (videoFeed) {
+            // Remove old src to prevent memory leaks
+            videoFeed.src = '';
+
+            // Use MJPEG stream without cache-busting parameter (causes corruption)
+            // MJPEG streams are continuous and don't need refresh parameters
+            const feedUrl = `/video_feed/${encodeURIComponent(driverEmail)}`;
+            videoFeed.src = feedUrl;
+
+            // Optimize image loading for streaming
+            videoFeed.loading = 'eager';
+            videoFeed.decoding = 'async';
+
+            videoFeed.classList.remove('hidden');
+            if (videoPlaceholder) videoPlaceholder.classList.add('hidden');
+            if (adminOverlay) adminOverlay.classList.remove('hidden');
+
+            // Start monitoring timer
+            monitoringStartTime = Date.now();
+            durationInterval = setInterval(updateDuration, 1000);
+
+            // Enhanced error handling with retry logic
+            let retryCount = 0;
+            const maxRetries = 3;
+            const retryDelay = 2000; // 2 seconds
+
+            const handleError = () => {
+              retryCount++;
+              if (retryCount <= maxRetries) {
+                // Retry loading the feed
+                setTimeout(() => {
+                  videoFeed.src = '';
+                  setTimeout(() => {
+                    videoFeed.src = feedUrl;
+                  }, 100);
+                }, retryDelay);
+              } else {
+                // Max retries reached, show error
+                if (videoPlaceholder) videoPlaceholder.classList.remove('hidden');
+                if (adminOverlay) adminOverlay.classList.add('hidden');
+                videoFeed.classList.add('hidden');
+                videoFeed.src = '';
+
+                // Stop monitoring timer on error
+                if (durationInterval) {
+                  clearInterval(durationInterval);
+                  durationInterval = null;
+                }
+                monitoringStartTime = null;
+
+                showNotification(`Driver ${driverName} feed is not available. They may not be monitoring.`, 'warning');
+              }
+            };
+
+            videoFeed.onerror = handleError;
+
+            // Reset retry count on successful load
+            videoFeed.onload = () => {
+              retryCount = 0;
+            };
+          }
+
+          showNotification(`Switched to monitoring: ${driverName}`, 'info');
+        }
+      });
+
+      // Initialize video feed on page load (no auto-selection - admin camera optional)
+      function initializeVideoFeed() {
+        const driverSelect = document.getElementById('driverSelectMonitor');
+        const videoFeed = document.getElementById('videoFeed');
+        const videoPlaceholder = document.getElementById('videoPlaceholder');
+        const adminOverlay = document.getElementById('adminOverlayInfo');
+        const driverInfo = document.getElementById('monitoredDriverInfo');
+
+        // Don't auto-select anything - let admin choose a driver
+        // Keep placeholder visible until driver is selected
+        if (videoFeed) {
+          videoFeed.classList.add('hidden');
+        }
+        if (videoPlaceholder) {
+          videoPlaceholder.classList.remove('hidden');
+        }
+        if (adminOverlay) {
+          adminOverlay.classList.add('hidden');
+        }
+        if (driverInfo) {
+          driverInfo.textContent = 'Driver: None';
+        }
+      }
+
+      // Initialize
+      populateDriverSelector();
+      initializeVideoFeed();
+
+      // Refresh driver list every 5 seconds to catch new monitoring sessions
+      setInterval(populateDriverSelector, 5000);
+
+      // Poll driver metrics for admin monitoring section
+      let adminMetricsInterval = null;
+      function pollAdminDriverMetrics() {
+        const driverSelect = document.getElementById('driverSelectMonitor');
+        const driverEmail = driverSelect?.value;
+        const metricsSection = document.getElementById('adminMetricsSection');
+
+        if (!driverEmail || driverEmail === '' || driverEmail === 'current') {
+          if (metricsSection) metricsSection.classList.add('hidden');
+          return;
+        }
+
+        // Show metrics section
+        if (metricsSection) metricsSection.classList.remove('hidden');
+
+        // Fetch driver status with metric times
+        fetch(`/status?driver=${encodeURIComponent(driverEmail)}`)
+          .then(r => r.json())
+          .then(s => {
+            // Update metric values
+            const earEl = document.getElementById('adminMetricEAR');
+            const marEl = document.getElementById('adminMetricMAR');
+            const tiltEl = document.getElementById('adminMetricTilt');
+            const perclosEl = document.getElementById('adminMetricPerclos');
+
+            if (earEl) earEl.textContent = typeof s.ear === 'number' ? s.ear.toFixed(3) : '--';
+            if (marEl) marEl.textContent = typeof s.mar === 'number' ? s.mar.toFixed(3) : '--';
+            if (tiltEl) tiltEl.textContent = typeof s.tiltDeg === 'number' ? s.tiltDeg.toFixed(1) + '°' : '--';
+            if (perclosEl) perclosEl.textContent = typeof s.perclos === 'number' ? Math.round(s.perclos * 100) + '%' : '--';
+
+            // Update metric times if available
+            if (s.metric_times) {
+              updateAdminMetricTime('EAR', s.metric_times.ear, 'adminMetricEARTime', null);
+              updateAdminMetricTime('MAR', s.metric_times.mar, 'adminMetricMARTime', null);
+              updateAdminMetricTime('Tilt', s.metric_times.headTilt, 'adminMetricTiltTime', null);
+              updateAdminMetricTime('PERCLOS', s.metric_times.perclos, 'adminMetricPerclosTime', null);
+            } else {
+              // Clear time displays
+              ['adminMetricEARTime', 'adminMetricMARTime', 'adminMetricTiltTime', 'adminMetricPerclosTime'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = '--';
+              });
+            }
+
+            // Update threshold progress bars if metric timers are available
+            if (s.metric_timers && s.value_thresholds) {
+              updateAdminMetricThresholdProgress('EAR', s.metric_times?.ear, s.metric_timers.ear, s.ear, s.value_thresholds.ear, 'adminMetricEARThreshold', 'adminMetricEARProgress', 'adminMetricEARProgressText');
+              updateAdminMetricThresholdProgress('MAR', s.metric_times?.mar, s.metric_timers.mar, s.mar, s.value_thresholds.mar, 'adminMetricMARThreshold', 'adminMetricMARProgress', 'adminMetricMARProgressText');
+              updateAdminMetricThresholdProgress('Tilt', s.metric_times?.headTilt, s.metric_timers.tilt, s.tiltDeg, s.value_thresholds.tilt, 'adminMetricTiltThreshold', 'adminMetricTiltProgress', 'adminMetricTiltProgressText');
+              updateAdminMetricThresholdProgress('PERCLOS', s.metric_times?.perclos, s.metric_timers.perclos, s.perclos, s.value_thresholds.perclos, 'adminMetricPerclosThreshold', 'adminMetricPerclosProgress', 'adminMetricPerclosProgressText');
+            } else {
+              // Clear threshold displays
+              ['adminMetricEARThreshold', 'adminMetricMARThreshold', 'adminMetricTiltThreshold', 'adminMetricPerclosThreshold'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = '--';
+              });
+              ['adminMetricEARProgress', 'adminMetricMARProgress', 'adminMetricTiltProgress', 'adminMetricPerclosProgress'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.width = '0%';
+              });
+              ['adminMetricEARProgressText', 'adminMetricMARProgressText', 'adminMetricTiltProgressText', 'adminMetricPerclosProgressText'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = '--';
+              });
+            }
+          })
+          .catch(() => {
+            if (metricsSection) metricsSection.classList.add('hidden');
+          });
+      }
+
+      // Helper function to format metric time for admin panel
+      function updateAdminMetricTime(metricName, metricTimeData, timeElId, durationElId) {
+        const timeEl = document.getElementById(timeElId);
+        const durationEl = durationElId ? document.getElementById(durationElId) : null;
+
+        if (!timeEl) return;
+
+        if (!metricTimeData || metricTimeData.last_update === 'Never' || metricTimeData.last_update === undefined) {
+          timeEl.textContent = 'Never updated';
+          if (durationEl) durationEl.textContent = '';
+          return;
+        }
+
+        try {
+          const updateTime = new Date(metricTimeData.last_update);
+          const now = new Date();
+          const diffSeconds = Math.floor((now - updateTime) / 1000);
+
+          let timeStr = '';
+          if (diffSeconds < 5) {
+            timeStr = 'Just now';
+          } else if (diffSeconds < 60) {
+            timeStr = `${diffSeconds}s ago`;
+          } else if (diffSeconds < 3600) {
+            const minutes = Math.floor(diffSeconds / 60);
+            timeStr = `${minutes}m ago`;
+          } else {
+            const hours = Math.floor(diffSeconds / 3600);
+            timeStr = `${hours}h ago`;
+          }
+
+          timeEl.textContent = timeStr;
+
+          // Format duration in current state (only if durationEl is provided)
+          if (durationEl) {
+            const durationSeconds = metricTimeData.duration_seconds || 0;
+            let durationStr = '';
+            if (durationSeconds < 60) {
+              durationStr = `${Math.floor(durationSeconds)}s`;
+            } else if (durationSeconds < 3600) {
+              const minutes = Math.floor(durationSeconds / 60);
+              const seconds = Math.floor(durationSeconds % 60);
+              durationStr = `${minutes}m ${seconds}s`;
+            } else {
+              const hours = Math.floor(durationSeconds / 3600);
+              const minutes = Math.floor((durationSeconds % 3600) / 60);
+              durationStr = `${hours}h ${minutes}m`;
+            }
+            durationEl.textContent = durationStr;
+          }
+        } catch (e) {
+          timeEl.textContent = '--';
+          if (durationEl) durationEl.textContent = '';
+        }
+      }
+
+      // Helper function to update threshold progress bars for admin panel
+      function updateAdminMetricThresholdProgress(metricName, metricTimeData, thresholdSeconds, currentValue, valueThreshold, thresholdElId, progressElId, progressTextElId) {
+        const thresholdEl = document.getElementById(thresholdElId);
+        const progressEl = document.getElementById(progressElId);
+        const progressTextEl = document.getElementById(progressTextElId);
+
+        if (!thresholdEl || !progressEl || !progressTextEl) return;
+
+        thresholdEl.textContent = `${thresholdSeconds}s`;
+
+        let isInAlertState = false;
+        if (currentValue !== null && currentValue !== undefined && currentValue !== '--' && typeof currentValue === 'number') {
+          if (metricName === 'EAR') {
+            isInAlertState = currentValue < valueThreshold;
+          } else if (metricName === 'MAR') {
+            isInAlertState = currentValue > valueThreshold;
+          } else if (metricName === 'Tilt') {
+            isInAlertState = currentValue > valueThreshold;
+          } else if (metricName === 'PERCLOS') {
+            const perclosValue = typeof currentValue === 'number' ? currentValue : (typeof currentValue === 'string' ? parseFloat(currentValue.replace('%', '')) / 100 : 0);
+            isInAlertState = perclosValue > valueThreshold;
+          }
+        }
+
+        const durationSeconds = metricTimeData?.duration_seconds || 0;
+        const hasDuration = durationSeconds > 0;
+
+        if (!isInAlertState && !hasDuration) {
+          progressEl.style.width = '0%';
+          progressEl.className = 'bg-gray-300 h-1.5 rounded-full transition-all duration-300';
+          progressTextEl.textContent = 'Normal';
+          progressTextEl.className = 'text-xs text-gray-600 mt-0.5';
+          return;
+        }
+
+        const activeDuration = hasDuration ? durationSeconds : 0;
+        const progressPercent = Math.min(100, (activeDuration / thresholdSeconds) * 100);
+
+        progressEl.style.width = `${progressPercent}%`;
+
+        if (progressPercent < 30) {
+          progressEl.className = 'bg-green-500 h-1.5 rounded-full transition-all duration-300';
+        } else if (progressPercent < 70) {
+          progressEl.className = 'bg-yellow-500 h-1.5 rounded-full transition-all duration-300';
+        } else {
+          progressEl.className = 'bg-red-500 h-1.5 rounded-full transition-all duration-300';
+        }
+
+        const remainingSeconds = Math.max(0, thresholdSeconds - activeDuration);
+        if (progressPercent >= 100) {
+          progressTextEl.textContent = 'Alert will trigger';
+          progressTextEl.className = 'text-xs text-red-600 font-semibold mt-0.5';
+        } else if (remainingSeconds <= 2) {
+          progressTextEl.textContent = `${remainingSeconds.toFixed(1)}s until alert`;
+          progressTextEl.className = 'text-xs text-red-600 font-semibold mt-0.5';
+        } else if (remainingSeconds <= thresholdSeconds * 0.3) {
+          progressTextEl.textContent = `${Math.ceil(remainingSeconds)}s remaining`;
+          progressTextEl.className = 'text-xs text-amber-600 font-medium mt-0.5';
+        } else if (isInAlertState || hasDuration) {
+          progressTextEl.textContent = `${Math.ceil(remainingSeconds)}s remaining`;
+          progressTextEl.className = 'text-xs text-gray-600 mt-0.5';
+        } else {
+          progressTextEl.textContent = 'Normal';
+          progressTextEl.className = 'text-xs text-gray-600 mt-0.5';
+        }
+      }
+
+      // Start polling metrics when driver is selected
+      document.getElementById('driverSelectMonitor')?.addEventListener('change', () => {
+        // Clear existing interval
+        if (adminMetricsInterval) {
+          clearInterval(adminMetricsInterval);
+          adminMetricsInterval = null;
+        }
+
+        // Start polling if a driver is selected
+        const driverSelect = document.getElementById('driverSelectMonitor');
+        if (driverSelect?.value && driverSelect.value !== '' && driverSelect.value !== 'current') {
+          pollAdminDriverMetrics(); // Poll immediately
+          adminMetricsInterval = setInterval(pollAdminDriverMetrics, 2000); // Poll every 2 seconds
+        } else {
+          const metricsSection = document.getElementById('adminMetricsSection');
+          if (metricsSection) metricsSection.classList.add('hidden');
+        }
+      });
+
+      // Initial poll if driver is already selected
+      setTimeout(() => {
+        const driverSelect = document.getElementById('driverSelectMonitor');
+        if (driverSelect?.value && driverSelect.value !== '' && driverSelect.value !== 'current') {
+          pollAdminDriverMetrics();
+          adminMetricsInterval = setInterval(pollAdminDriverMetrics, 2000);
+        }
+      }, 1000);
+
+      // Simulate FPS and landmarks count updates (replace with real data)
+      setInterval(() => {
+        const fpsEl = document.getElementById('processingFps');
+        const landmarksEl = document.getElementById('landmarksCount');
+        const videoFeed = document.getElementById('videoFeed');
+        const videoPlaceholder = document.getElementById('videoPlaceholder');
+
+        // Only update if monitoring is active (video visible and placeholder hidden)
+        if (fpsEl && landmarksEl && videoFeed && !videoFeed.classList.contains('hidden') &&
+          videoPlaceholder && videoPlaceholder.classList.contains('hidden')) {
+          const fps = Math.floor(Math.random() * 5) + 25; // 25-30 FPS
+          const landmarks = Math.floor(Math.random() * 10) + 468; // 468-478 landmarks
+          fpsEl.textContent = `${fps} FPS`;
+          landmarksEl.textContent = landmarks;
+        }
+      }, 2000);
+
+      // Cleanup
+      window.addEventListener('beforeunload', () => {
+        if (durationInterval) {
+          clearInterval(durationInterval);
+        }
+      });
+    })();
+
+    // ==================== MULTI-FEED VIDEO GRID ====================
+    (function () {
+      let currentLayout = 'single';
+      let activeFeeds = [];
+
+      // Render metric row for multi-feed grid
+      function renderMetricRow(label, metricData) {
+        let value, duration, lastUpdate;
+        if (typeof metricData === 'object' && metricData !== null) {
+          value = metricData.value || '--';
+          duration = metricData.duration || '--';
+          lastUpdate = metricData.last_update || 'Never';
+        } else {
+          value = metricData || '--';
+          duration = '--';
+          lastUpdate = 'Never';
+        }
+
+        return `
+          <div class="flex items-center justify-between py-1 border-b border-gray-100 last:border-0">
+            <div class="flex items-center gap-2">
+              <span class="text-gray-500 font-medium">${label}:</span>
+              <span class="font-bold text-gray-800">${value}</span>
+            </div>
+            <div class="text-gray-400 text-xs">
+              <span><i class="ph ph-timer"></i> ${duration}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // Render multi-feed grid
+      async function renderMultiFeedGrid() {
+        const container = document.getElementById('videoGridContainer');
+        const layout = document.getElementById('gridLayoutSelect')?.value || 'single';
+        currentLayout = layout;
+
+        if (layout === 'single') {
+          container.innerHTML = `
+            <div class="text-center py-12 text-gray-400">
+              <i class="ph ph-television text-4xl mb-3"></i>
+              <p>Select a grid layout above to view multiple feeds</p>
+              <p class="text-xs mt-2">Drivers must be online and monitoring for feeds to appear</p>
+            </div>
+          `;
+          return;
+        }
+
+        // Get active/monitoring drivers
+        try {
+          const response = await fetch('/api/admin/drivers/status');
+          const data = await response.json();
+
+          if (!data.ok || !data.drivers) {
+            container.innerHTML = '<div class="text-center py-12 text-gray-400">Failed to load drivers</div>';
+            return;
+          }
+
+          // Filter drivers who are actively monitoring
+          const monitoringDrivers = data.drivers.filter(d => d.isMonitoring);
+          activeFeeds = monitoringDrivers;
+
+          if (monitoringDrivers.length === 0) {
+            container.innerHTML = `
+              <div class="text-center py-12 text-gray-400">
+                <i class="ph ph-video-camera-slash text-4xl mb-3"></i>
+                <p>No drivers are currently monitoring</p>
+                <p class="text-xs mt-2">Drivers must start their monitoring session to appear here</p>
+              </div>
+            `;
+            return;
+          }
+
+          // Determine grid layout
+          let gridCols = 'grid-cols-1';
+          let maxFeeds = 1;
+          switch (layout) {
+            case '2x2':
+              gridCols = 'grid-cols-1 md:grid-cols-2';
+              maxFeeds = 4;
+              break;
+            case '3x2':
+              gridCols = 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+              maxFeeds = 6;
+              break;
+            case '3x3':
+              gridCols = 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+              maxFeeds = 9;
+              break;
+          }
+
+          // Limit to max feeds
+          const driversToShow = monitoringDrivers.slice(0, maxFeeds);
+
+          // Apply grid layout
+          container.className = `grid ${gridCols} gap-4`;
+
+          // Create feed cards
+          container.innerHTML = driversToShow.map(driver => {
+            const statusColor = driver.status === 'drowsy' ? 'text-red-600' :
+              driver.status === 'alert' ? 'text-green-600' : 'text-gray-600';
+            const statusBg = driver.status === 'drowsy' ? 'bg-red-100' :
+              driver.status === 'alert' ? 'bg-green-100' : 'bg-gray-100';
+
+            return `
+              <div class="feed-card border border-gray-200 rounded-lg overflow-hidden bg-white">
+                <!-- Driver Info Header -->
+                <div class="p-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center text-sm font-bold">
+                      ${driver.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                    </div>
+                    <div>
+                      <div class="font-semibold text-sm text-gray-800">${driver.name}</div>
+                      <div class="text-xs text-gray-500">${driver.email}</div>
+                    </div>
+                  </div>
+                  <span class="px-2 py-1 rounded-full text-xs font-semibold ${statusBg} ${statusColor}">
+                    ${driver.status.toUpperCase()}
+                  </span>
+                </div>
+
+                <!-- Video Feed -->
+                <div class="relative bg-gray-900 aspect-video">
+                  <img src="/video_feed/${encodeURIComponent(driver.email)}" 
+                       alt="${driver.name} feed" 
+                       class="w-full h-full object-cover"
+                       loading="eager"
+                       decoding="async"
+                       onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden')">
+                  <div class="hidden absolute inset-0 flex items-center justify-center text-white bg-gray-800">
+                    <div class="text-center">
+                      <i class="ph ph-video-camera-slash text-3xl mb-2"></i>
+                      <p class="text-sm">Feed unavailable</p>
+                    </div>
+                  </div>
+                  
+                  <!-- Live indicator -->
+                  <div class="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold inline-flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                    LIVE
+                  </div>
+
+                  <!-- Timestamp -->
+                  <div class="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                    ${new Date().toLocaleTimeString()}
+                  </div>
+                </div>
+
+                <!-- Metrics Footer -->
+                <div class="p-3 bg-white border-t border-gray-200">
+                  <div class="space-y-1 text-xs">
+                    ${renderMetricRow('EAR', driver.metrics.ear)}
+                    ${renderMetricRow('MAR', driver.metrics.mar)}
+                    ${renderMetricRow('PERCLOS', driver.metrics.perclos)}
+                    ${renderMetricRow('Tilt', driver.metrics.headTilt)}
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+        } catch (error) {
+          console.error('Error rendering multi-feed grid:', error);
+          container.innerHTML = '<div class="text-center py-12 text-red-400">Error loading feeds</div>';
+        }
+      }
+
+      // Note: MJPEG streams are continuous and don't need manual refresh
+      // The browser automatically handles frame updates from the stream
+      // Only refresh the grid layout when drivers come online/offline
+      let refreshInterval = null;
+      function startAutoRefresh() {
+        if (refreshInterval) clearInterval(refreshInterval);
+        if (currentLayout !== 'single') {
+          // Only refresh driver list (not images) every 10 seconds to catch new monitoring sessions
+          refreshInterval = setInterval(() => {
+            if (currentLayout !== 'single') {
+              // Only re-render if driver count changes, not to refresh images
+              renderMultiFeedGrid();
+            }
+          }, 10000); // Increased to 10 seconds since images stream continuously
+        }
+      }
+
+      // Event listeners
+      document.getElementById('gridLayoutSelect')?.addEventListener('change', () => {
+        renderMultiFeedGrid();
+        startAutoRefresh();
+      });
+
+      document.getElementById('refreshMultiFeedsBtn')?.addEventListener('click', () => {
+        renderMultiFeedGrid();
+        showNotification('Feeds refreshed', 'success');
+      });
+
+      // Initial render
+      renderMultiFeedGrid();
+
+      // Cleanup
+      window.addEventListener('beforeunload', () => {
+        if (refreshInterval) clearInterval(refreshInterval);
+      });
+    })();
+
+
+    // ==================== NOTIFICATION SYSTEM ====================
+    function showNotification(message, type = 'info') {
+      const colors = {
+        success: 'bg-green-500',
+        error: 'bg-red-500',
+        info: 'bg-orange-500',
+        warning: 'bg-amber-500'
+      };
+
+      const notification = document.createElement('div');
+      notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-slide-in`;
+      notification.innerHTML = `
+        <div class="flex items-center gap-3">
+          <i class="ph ph-${type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : 'info'} text-xl"></i>
+          <span>${message}</span>
+        </div>
+      `;
+
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.style.animation = 'slide-out 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
+    }
+  </script>
+</body>
+
+</html>
