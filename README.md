@@ -695,16 +695,10 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ---
 
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
 ## 👥 Authors
 
-- **Fernando Jose Reeves** - *Lead development & testing*
-- **Mark Joseph Recosana** - *Secondary development & implementation*
+- **Fernando Jose Reeves** - *Lead development & impelementation
+- **Mark Joseph Recosana** - *Secondary development & testing*
 
 ---
 
@@ -739,5 +733,5 @@ For issues, questions, or contributions, please open an issue on the GitHub repo
 
 ---
 
-**Note:** This system is designed for educational and research purposes. Always ensure proper testing before deploying in production environments.
+**Note:** This system is designed for educational, research, and personal use purposes. Always ensure proper testing before deploying in production environments.
 
