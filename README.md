@@ -491,31 +491,68 @@ cd "/path/to/AI-Drowsy-Driver-Detection" && ./start_cloudflare.sh
 3. **Choose Camera:**
    - **Server Camera:** Uses connected USB webcam
    - **Browser Camera:** Uses your device's camera (click "Use Browser Cam")
-4. **Monitor Metrics:** Watch real-time detection metrics:
-   - **EAR:** Eye openness (lower = more closed)
-   - **MAR:** Mouth openness (higher = yawning)
-   - **Head Tilt:** Head angle (higher = more tilted)
-   - **PERCLOS:** Percentage of time eyes closed
-5. **Respond to Alerts:** If drowsiness is detected, acknowledge the alert
+4. **Monitor Metrics:** Watch real-time detection metrics displayed on your dashboard:
+   - **EAR (Eye Aspect Ratio):** Measures how open your eyes are. Normal values are around 0.25-0.30. Lower values (below 0.23) indicate your eyes are closing, which triggers an alert.
+   - **MAR (Mouth Aspect Ratio):** Measures how wide your mouth is open. Normal values are below 0.65. Higher values (above 0.65) indicate yawning, which is a sign of drowsiness.
+   - **Head Tilt:** Measures the angle of your head in degrees. Normal values are less than 18°. Higher values indicate your head is tilting forward, backward, or to the side, which triggers an alert.
+   - **PERCLOS (Percentage of Eye Closure):** Measures the percentage of time your eyes are closed over a period. Normal values are less than 20%. Higher values (above 20%) indicate your eyes are closed too often, triggering an alert.
+   - *The progress bars show how close each metric is to triggering an alert. Each metric must stay in an alert state for a configured duration before an alert is triggered (this prevents false alarms).*
+5. **Respond to Alerts:** If drowsiness is detected, acknowledge the alert to dismiss it
 
 ### For Administrators
 
-1. **Monitor Drivers:** View all active drivers and their status
+1. **Monitor Drivers:** View all active drivers and their status in real-time
 2. **Configure Settings:**
-   - Adjust detection sensitivity
-   - Set metric timer thresholds
-   - Configure notification preferences
-3. **View History:** Review past drowsiness events
+   - Adjust detection sensitivity for each metric (EAR, MAR, Head Tilt, PERCLOS)
+   - Set metric timer thresholds (how long a metric must be in alert state before triggering)
+   - Configure notification preferences (SMS, Email, Telegram, Arduino alerts)
+   - *See "Understanding Detection Metrics" section below for detailed metric explanations*
+3. **View History:** Review past drowsiness events and driver activity logs
 4. **Manage Contacts:** Add emergency contacts for SMS notifications
 
 *NOTE FOR ADMIN – Use the only one `DrowsyDet@gmail.com` account when applying settings so changes sync across all drivers.*
 
 ### Understanding Detection Metrics
 
-- **EAR (Eye Aspect Ratio):** Measures vertical vs horizontal eye distance. Normal: ~0.25-0.30. Alert: <0.23
-- **MAR (Mouth Aspect Ratio):** Measures mouth opening. Normal: <0.65. Alert: >0.65 (yawning)
-- **Head Tilt:** Measures head angle in degrees. Normal: <18°. Alert: >18°
-- **PERCLOS:** Percentage of time eyes are closed. Normal: <20%. Alert: >20%
+The system uses four key metrics to detect drowsiness. Understanding these helps both drivers and administrators interpret alerts and configure the system effectively.
+
+#### 1. EAR (Eye Aspect Ratio)
+- **What it measures:** The ratio between the vertical and horizontal distances of your eyes. When you're alert, your eyes are open and the ratio is higher. When drowsy, your eyes close and the ratio decreases.
+- **Normal range:** 0.25 - 0.30 (eyes open and alert)
+- **Alert threshold:** Below 0.23 (eyes closing or closed)
+- **What it detects:** Eye closure, prolonged blinking, or drooping eyelids
+- **For drivers:** Keep your eyes open and facing forward. If the EAR value drops below 0.23 for several seconds, an alert will trigger.
+- **For admins:** Lower EAR threshold = more sensitive (detects smaller eye closures). Higher threshold = less sensitive (requires more eye closure to trigger).
+
+#### 2. MAR (Mouth Aspect Ratio)
+- **What it measures:** The ratio of mouth opening width to height. When you yawn, your mouth opens wide, increasing this ratio.
+- **Normal range:** Below 0.65 (mouth closed or slightly open)
+- **Alert threshold:** Above 0.65 (yawning detected)
+- **What it detects:** Yawning, which is a strong indicator of fatigue or drowsiness
+- **For drivers:** Frequent yawning is a sign you should take a break. The system will alert when sustained yawning is detected.
+- **For admins:** Higher MAR threshold = less sensitive (requires wider yawns). Lower threshold = more sensitive (detects smaller mouth openings).
+
+#### 3. Head Tilt
+- **What it measures:** The angle of your head relative to the vertical axis. When drowsy, drivers often tilt their head forward, backward, or to the side.
+- **Normal range:** Less than 18 degrees (head upright and forward-facing)
+- **Alert threshold:** More than 18 degrees (head tilted significantly)
+- **What it detects:** Head nodding, head dropping forward, or tilting to the side
+- **For drivers:** Keep your head upright and facing the road. If your head tilts more than 18 degrees for several seconds, an alert will trigger.
+- **For admins:** Lower tilt threshold = more sensitive (detects smaller head movements). Higher threshold = less sensitive (requires more tilt to trigger).
+
+#### 4. PERCLOS (Percentage of Eye Closure)
+- **What it measures:** The percentage of time your eyes are closed over a rolling time window. This metric tracks prolonged eye closure over time, not just brief blinks.
+- **Normal range:** Less than 20% (eyes open most of the time)
+- **Alert threshold:** Above 20% (eyes closed for significant portion of time)
+- **What it detects:** Microsleep episodes, prolonged eye closure, or frequent long blinks
+- **For drivers:** This metric tracks if your eyes are closed too often. If PERCLOS exceeds 20%, it means your eyes are closed more than 20% of the time, indicating drowsiness.
+- **For admins:** Higher PERCLOS threshold = less sensitive (allows more eye closure). Lower threshold = more sensitive (triggers with less eye closure).
+
+#### How Metrics Work Together
+- The system monitors all four metrics simultaneously
+- An alert is triggered when any metric exceeds its threshold for the configured duration
+- **False Alarm Prevention:** Each metric must remain in an alert state for a set duration (configurable by admins) before triggering, preventing brief moments from causing false alarms
+- The progress bars in the driver dashboard show how close each metric is to triggering an alert
 
 ---
 
