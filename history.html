@@ -33,7 +33,7 @@
   </script>
 </head>
 
-<body class="bg-gray-50 text-slate-900 min-h-screen flex flex-col font-sans">
+<body class="bg-gray-50 text-slate-900 min-h-screen flex flex-col font-sans page-transition">
   <!-- Header -->
   <header class="flex items-center justify-between bg-white px-6 py-3 shadow-sm sticky top-0 z-20">
     <div class="flex items-center space-x-3 relative">
@@ -53,7 +53,7 @@
       </div>
       <div id="adminHamburgerMenu"
         class="hidden absolute left-0 top-12 w-44 bg-white border border-gray-200 rounded-md shadow-lg z-30">
-        <a href="admin.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+        <a href="#" id="dashboardLink" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
           <i class="ph ph-house"></i> Dashboard
         </a>
         <a href="history.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
@@ -128,7 +128,7 @@
     <section class="flex-1 p-6 overflow-y-auto max-h-screen">
       <nav class="text-sm mb-6 text-gray-500 select-none" aria-label="breadcrumb">
         <ol class="list-reset flex space-x-1">
-          <li><a href="admin.html" class="hover:text-blue-600">Dashboard</a></li>
+          <li><a href="#" id="breadcrumbDashboardLink" class="hover:text-blue-600">Dashboard</a></li>
           <li>/</li>
           <li class="text-gray-700 font-semibold">History</li>
         </ol>
@@ -193,15 +193,129 @@
     })();
   </script>
   <script>
+    // Set dashboard links based on user role
+    (function() {
+      try {
+        const role = (localStorage.getItem('role') || 'driver').toLowerCase();
+        const dashboardUrl = role === 'admin' ? 'admin.html' : 'driver.html';
+        
+        const dashboardLink = document.getElementById('dashboardLink');
+        const breadcrumbLink = document.getElementById('breadcrumbDashboardLink');
+        
+        if (dashboardLink) {
+          dashboardLink.href = dashboardUrl;
+        }
+        if (breadcrumbLink) {
+          breadcrumbLink.href = dashboardUrl;
+        }
+      } catch (e) {
+        console.error('Error setting dashboard links:', e);
+      }
+    })();
+
+    // Ensure events are loaded on page load
+    (function() {
+      // Wait for script.js to load, then ensure loadEvents is called
+      setTimeout(() => {
+        const eventsTableBody = document.getElementById('eventsTableBody');
+        if (eventsTableBody && typeof loadEvents === 'function') {
+          loadEvents();
+          // Refresh every 3 seconds
+          setInterval(loadEvents, 3000);
+        } else if (eventsTableBody) {
+          // Fallback: load events directly if loadEvents isn't available
+          fetch('/events').then(r => r.json()).then(events => {
+            if (!Array.isArray(events) || events.length === 0) {
+              eventsTableBody.innerHTML = '<tr class="border-t border-gray-100"><td class="py-2 pr-4" colspan="5" class="text-center text-gray-400">No events yet</td></tr>';
+              return;
+            }
+            eventsTableBody.innerHTML = '';
+            for (const e of events.slice(-50).reverse()) {
+              const tr = document.createElement('tr');
+              tr.className = 'border-t border-gray-100 hover:bg-gray-50';
+              const t = new Date(e.time || '').toLocaleString('en-US', { hour12: false }) || '--/--/-- --:--:--';
+              const conf = (typeof e.confidence === 'number') ? Math.round(e.confidence * 100) + '%' : '--%';
+              let locCell = '<span class="text-gray-400">(no location)</span>';
+              try {
+                const loc = e.location;
+                if (loc && typeof loc.lat === 'number' && typeof loc.lon === 'number') {
+                  const lat = Number(loc.lat).toFixed(6);
+                  const lon = Number(loc.lon).toFixed(6);
+                  const href = `https://maps.google.com/?q=${loc.lat},${loc.lon}`;
+                  locCell = `<a class="text-blue-600 hover:underline" href="${href}" target="_blank" title="Click to view on Google Maps">${lat}, ${lon}</a>`;
+                }
+              } catch (err) { }
+              let notesCell = e.notes || '';
+              if (e.type && e.type.toLowerCase() === 'drowsiness' && !notesCell) {
+                notesCell = 'Drowsiness detected';
+              }
+              tr.innerHTML = `<td class="py-2 pr-4">${t}</td><td class="py-2 pr-4 font-semibold ${e.type === 'Drowsiness' ? 'text-red-600' : 'text-orange-600'}">${e.type || 'Alert'}</td><td class="py-2 pr-4">${conf}</td><td class="py-2 pr-4">${locCell}</td><td class="py-2 pr-4">${notesCell}</td>`;
+              eventsTableBody.appendChild(tr);
+            }
+          }).catch(err => {
+            console.error('Error loading events:', err);
+            eventsTableBody.innerHTML = '<tr class="border-t border-gray-100"><td class="py-2 pr-4" colspan="5" class="text-center text-red-400">Error loading events</td></tr>';
+          });
+          setInterval(() => {
+            fetch('/events').then(r => r.json()).then(events => {
+              if (!Array.isArray(events) || events.length === 0) return;
+              const tbody = document.getElementById('eventsTableBody');
+              if (!tbody) return;
+              tbody.innerHTML = '';
+              for (const e of events.slice(-50).reverse()) {
+                const tr = document.createElement('tr');
+                tr.className = 'border-t border-gray-100 hover:bg-gray-50';
+                const t = new Date(e.time || '').toLocaleString('en-US', { hour12: false }) || '--/--/-- --:--:--';
+                const conf = (typeof e.confidence === 'number') ? Math.round(e.confidence * 100) + '%' : '--%';
+                let locCell = '<span class="text-gray-400">(no location)</span>';
+                try {
+                  const loc = e.location;
+                  if (loc && typeof loc.lat === 'number' && typeof loc.lon === 'number') {
+                    const lat = Number(loc.lat).toFixed(6);
+                    const lon = Number(loc.lon).toFixed(6);
+                    const href = `https://maps.google.com/?q=${loc.lat},${loc.lon}`;
+                    locCell = `<a class="text-blue-600 hover:underline" href="${href}" target="_blank" title="Click to view on Google Maps">${lat}, ${lon}</a>`;
+                  }
+                } catch (err) { }
+                let notesCell = e.notes || '';
+                if (e.type && e.type.toLowerCase() === 'drowsiness' && !notesCell) {
+                  notesCell = 'Drowsiness detected';
+                }
+                tr.innerHTML = `<td class="py-2 pr-4">${t}</td><td class="py-2 pr-4 font-semibold ${e.type === 'Drowsiness' ? 'text-red-600' : 'text-orange-600'}">${e.type || 'Alert'}</td><td class="py-2 pr-4">${conf}</td><td class="py-2 pr-4">${locCell}</td><td class="py-2 pr-4">${notesCell}</td>`;
+                tbody.appendChild(tr);
+              }
+            }).catch(() => { });
+          }, 3000);
+        }
+      }, 100);
+    })();
+
     const clearBtn = document.getElementById('clearHistoryBtn');
     clearBtn?.addEventListener('click', async () => {
+      if (!confirm('Are you sure you want to clear all event history?')) return;
       try {
         await fetch('/clear_events', { method: 'POST' });
         const tbody = document.getElementById('eventsTableBody');
-        if (tbody) tbody.innerHTML = '<tr class="border-t border-gray-100"><td class="py-2 pr-4">--/--/-- --:--:--</td><td class="py-2 pr-4">Drowsiness</td><td class="py-2 pr-4">--%</td><td class="py-2 pr-4">No alerts yet</td></tr>';
-      } catch (e) { }
+        if (tbody) {
+          tbody.innerHTML = '<tr class="border-t border-gray-100"><td class="py-2 pr-4" colspan="5" class="text-center text-gray-400">No events yet</td></tr>';
+        }
+      } catch (e) { 
+        console.error('Error clearing events:', e);
+        alert('Failed to clear events');
+      }
     });
   </script>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-gray-200 py-4 mt-auto">
+    <div class="container mx-auto px-6 text-center text-sm text-gray-600">
+      <p class="mb-1">© 2025 Mark Joseph Recosana & Fernando Jose Reeves. All rights reserved.</p>
+      <p>
+        <a href="https://linktr.ee/mj_recosana06" target="_blank" rel="noopener noreferrer" 
+           class="text-orange-600 hover:text-orange-700 underline transition">Visit Linktree</a>
+      </p>
+    </div>
+  </footer>
 </body>
 
 </html>

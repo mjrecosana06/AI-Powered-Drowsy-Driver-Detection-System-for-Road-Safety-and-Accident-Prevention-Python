@@ -34,11 +34,11 @@
         <div class="mb-6">
             <div class="grid grid-cols-2 gap-3">
                 <button type="button" id="roleAdmin"
-                    class="p-3 border-2 border-orange-600 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition font-semibold">
+                    class="p-3 border-2 border-orange-600 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition font-semibold btn-press">
                     Admin Panel
                 </button>
                 <button type="button" id="roleDriver"
-                    class="p-3 border-2 border-gray-300 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition font-semibold">
+                    class="p-3 border-2 border-gray-300 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition font-semibold btn-press">
                     Driver Dashboard
                 </button>
             </div>
@@ -51,7 +51,7 @@
                     <i class="ph ph-user-circle"></i> Email
                 </label>
                 <input id="adminLoginEmail" type="email" required placeholder="your-email@example.com"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition" />
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition input-focus" />
             </div>
 
             <div>
@@ -60,7 +60,7 @@
                 </label>
                 <div class="relative">
                     <input id="adminLoginPassword" type="password" required placeholder="Enter your password"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition" />
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition input-focus" />
                     <button id="toggleAdminPassword" type="button"
                         class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 p-1 rounded-md hover:bg-gray-100 transition">
                         <i class="ph ph-eye text-xl"></i>
@@ -75,7 +75,7 @@
                 </label>
             </div>
             <button type="submit"
-                class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-red-600 text-white font-bold py-3 rounded-lg hover:from-orange-700 hover:to-red-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed">
+                class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-red-600 text-white font-bold py-3 rounded-lg hover:from-orange-700 hover:to-red-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed btn-press">
                 <i class="ph ph-sign-in"></i>
                 <span id="loginBtnText">Login</span>
             </button>
@@ -225,6 +225,15 @@
             }
         })();
     </script>
+
+    <!-- Footer -->
+    <footer class="absolute bottom-0 left-0 right-0 py-4 text-center text-white/70 text-xs z-10">
+        <p class="mb-1">© 2025 Mark Joseph Recosana & Fernando Jose Reeves. All rights reserved.</p>
+        <p>
+            <a href="https://linktr.ee/mj_recosana06" target="_blank" rel="noopener noreferrer" 
+               class="text-orange-400 hover:text-orange-300 underline transition">Visit Linktree</a>
+        </p>
+    </footer>
 </body>
 
 </html>

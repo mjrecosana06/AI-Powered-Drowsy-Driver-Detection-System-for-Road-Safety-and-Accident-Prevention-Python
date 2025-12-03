@@ -787,11 +787,14 @@ function loadEvents() {
   if (!eventsTableBody) return;
   fetch('/events').then(r => r.json()).then(events => {
     if (!Array.isArray(events)) return;
-    if (events.length === 0) return;
+    if (events.length === 0) {
+      eventsTableBody.innerHTML = '<tr class="border-t border-gray-100"><td class="py-2 pr-4" colspan="5" class="text-center text-gray-400">No events yet</td></tr>';
+      return;
+    }
     eventsTableBody.innerHTML = '';
     for (const e of events.slice(-50).reverse()) {
       const tr = document.createElement('tr');
-      tr.className = 'border-t border-gray-100';
+      tr.className = 'border-t border-gray-100 hover:bg-gray-50';
       const t = new Date(e.time || '').toLocaleString('en-US', { hour12: false }) || '--/--/-- --:--:--';
       const conf = (typeof e.confidence === 'number') ? Math.round(e.confidence * 100) + '%' : '--%';
       let locCell = '<span class="text-gray-400">(no location)</span>';
@@ -801,13 +804,36 @@ function loadEvents() {
           const lat = Number(loc.lat).toFixed(6);
           const lon = Number(loc.lon).toFixed(6);
           const href = `https://maps.google.com/?q=${loc.lat},${loc.lon}`;
-          locCell = `<a class="text-blue-600 hover:underline" href="${href}" target="_blank">${lat}, ${lon}</a>`;
+          locCell = `<a class="text-blue-600 hover:underline" href="${href}" target="_blank" title="Click to view on Google Maps">${lat}, ${lon}</a>`;
+        } else if (loc && (loc.lat || loc.lon)) {
+          // Handle string coordinates
+          const lat = loc.lat ? Number(loc.lat).toFixed(6) : 'N/A';
+          const lon = loc.lon ? Number(loc.lon).toFixed(6) : 'N/A';
+          if (lat !== 'N/A' && lon !== 'N/A') {
+            const href = `https://maps.google.com/?q=${loc.lat},${loc.lon}`;
+            locCell = `<a class="text-blue-600 hover:underline" href="${href}" target="_blank" title="Click to view on Google Maps">${lat}, ${lon}</a>`;
+          }
         }
-      } catch (err) { }
-      tr.innerHTML = `<td class="py-2 pr-4">${t}</td><td class="py-2 pr-4">${e.type || ''}</td><td class="py-2 pr-4">${conf}</td><td class="py-2 pr-4">${locCell}</td><td class="py-2 pr-4">${e.notes || ''}</td>`;
+      } catch (err) { 
+        console.error('Error parsing location:', err);
+      }
+      // Enhanced notes display - show reason and type details
+      let notesCell = e.notes || '';
+      if (e.type && e.type.toLowerCase() === 'drowsiness' && !notesCell) {
+        notesCell = 'Drowsiness detected';
+      }
+      if (e.reason && !notesCell.includes(e.reason)) {
+        notesCell = notesCell ? `${notesCell} (${e.reason})` : e.reason;
+      }
+      tr.innerHTML = `<td class="py-2 pr-4">${t}</td><td class="py-2 pr-4 font-semibold ${e.type === 'Drowsiness' ? 'text-red-600' : 'text-orange-600'}">${e.type || 'Alert'}</td><td class="py-2 pr-4">${conf}</td><td class="py-2 pr-4">${locCell}</td><td class="py-2 pr-4">${notesCell}</td>`;
       eventsTableBody.appendChild(tr);
     }
-  }).catch(() => { });
+  }).catch((err) => { 
+    console.error('Error loading events:', err);
+    if (eventsTableBody) {
+      eventsTableBody.innerHTML = '<tr class="border-t border-gray-100"><td class="py-2 pr-4" colspan="5" class="text-center text-red-400">Error loading events</td></tr>';
+    }
+  });
 }
 if (eventsTableBody) {
   loadEvents();

@@ -375,9 +375,10 @@ header {
   }
 }
 
-/* Smooth card entry animations */
+/* Smooth card entry animations - only once on load */
 .card-enter {
   animation: cardEnter 0.5s ease-out;
+  animation-fill-mode: forwards;
 }
 
 @keyframes cardEnter {
@@ -1124,4 +1125,41 @@ section.bg-gradient-to-br {
     width: 96px !important;
     height: 96px !important;
   }
+}
+
+/* ========== ESSENTIAL ANIMATIONS ONLY ========== */
+
+/* Button press effect - important for feedback */
+.btn-press:active {
+  transform: scale(0.95);
+  transition: transform 0.1s ease;
+}
+
+/* Smooth input focus - important for UX */
+.input-focus {
+  transition: all 0.2s ease;
+}
+
+.input-focus:focus {
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+}
+
+/* Smooth page transition - only on load */
+.page-transition {
+  animation: pageTransition 0.3s ease-out;
+  animation-fill-mode: forwards;
+}
+
+@keyframes pageTransition {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
 }
