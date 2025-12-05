@@ -542,7 +542,9 @@ class DrowsinessMonitor:
                 # On DROWSY, attempt all notifications (SMS, Email, Telegram) (best-effort)
                 if state == 'DROWSY':
                     try:
-                        trigger_all_notifications(event)
+                        # Get driver email from monitor to filter contacts
+                        driver_email = getattr(self, '_user_email', None)
+                        trigger_all_notifications(event, driver_email=driver_email)
                     except Exception:
                         pass
 
@@ -1063,12 +1065,17 @@ def _twilio_client():  # pragma: no cover
         return None
 
 
-def trigger_sms_notifications(event: dict) -> int:  # pragma: no cover
+def trigger_sms_notifications(event: dict, driver_email: str = None) -> int:  # pragma: no cover
     client = _twilio_client()
     from_number = os.getenv('TWILIO_FROM_NUMBER')
     if not client or not from_number:
         return 0
-    contacts = _load_contacts()
+    all_contacts = _load_contacts()
+    # Filter contacts by driver email (owner field)
+    if driver_email:
+        contacts = [c for c in all_contacts if c.get('owner') == driver_email and c.get('active', True)]
+    else:
+        contacts = [c for c in all_contacts if c.get('active', True)]
     # Include Google Maps link if we have a recent client-provided location
     message = f"Drowsiness alert at {event.get('time', '')}: {event.get('notes', '')}"
     try:
@@ -1131,9 +1138,14 @@ def send_email_notification(to_email: str, subject: str, message: str) -> bool:
         return False
 
 
-def trigger_email_notifications(event: dict) -> int:
-    """Trigger email notifications to all active contacts with email"""
-    contacts = _load_contacts()
+def trigger_email_notifications(event: dict, driver_email: str = None) -> int:
+    """Trigger email notifications to all active contacts with email, filtered by driver email"""
+    all_contacts = _load_contacts()
+    # Filter contacts by driver email (owner field)
+    if driver_email:
+        contacts = [c for c in all_contacts if c.get('owner') == driver_email and c.get('active', True)]
+    else:
+        contacts = [c for c in all_contacts if c.get('active', True)]
     
     # Build message
     subject = f"🚨 Drowsiness Alert - {event.get('type', 'Alert')}"
@@ -1206,9 +1218,14 @@ def send_telegram_notification(chat_id: str, message: str) -> bool:
         return False
 
 
-def trigger_telegram_notifications(event: dict) -> int:
-    """Trigger Telegram notifications to all active contacts with Telegram"""
-    contacts = _load_contacts()
+def trigger_telegram_notifications(event: dict, driver_email: str = None) -> int:
+    """Trigger Telegram notifications to all active contacts with Telegram, filtered by driver email"""
+    all_contacts = _load_contacts()
+    # Filter contacts by driver email (owner field)
+    if driver_email:
+        contacts = [c for c in all_contacts if c.get('owner') == driver_email and c.get('active', True)]
+    else:
+        contacts = [c for c in all_contacts if c.get('active', True)]
     
     # Build message with HTML formatting
     message = f"""
@@ -1256,9 +1273,10 @@ def trigger_telegram_notifications(event: dict) -> int:
 
 
 # ---- Unified Notification Trigger ----
-def trigger_all_notifications(event: dict) -> dict:
+def trigger_all_notifications(event: dict, driver_email: str = None) -> dict:
     """
     Trigger all enabled notification methods (SMS, Email, Telegram)
+    Filters contacts by driver_email (owner field) to ensure only driver's contacts are notified
     Returns a dict with counts for each method
     """
     results = {
@@ -1270,7 +1288,7 @@ def trigger_all_notifications(event: dict) -> dict:
     
     try:
         # Try SMS (Twilio - paid)
-        sms_sent = trigger_sms_notifications(event)
+        sms_sent = trigger_sms_notifications(event, driver_email=driver_email)
         results['sms'] = sms_sent
         results['total'] += sms_sent
     except Exception as e:
@@ -1278,7 +1296,7 @@ def trigger_all_notifications(event: dict) -> dict:
     
     try:
         # Try Email (FREE)
-        email_sent = trigger_email_notifications(event)
+        email_sent = trigger_email_notifications(event, driver_email=driver_email)
         results['email'] = email_sent
         results['total'] += email_sent
     except Exception as e:
@@ -1286,7 +1304,7 @@ def trigger_all_notifications(event: dict) -> dict:
     
     try:
         # Try Telegram (FREE)
-        telegram_sent = trigger_telegram_notifications(event)
+        telegram_sent = trigger_telegram_notifications(event, driver_email=driver_email)
         results['telegram'] = telegram_sent
         results['total'] += telegram_sent
     except Exception as e:
