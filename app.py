@@ -962,6 +962,22 @@ def _is_admin_email(email: str) -> bool:
         return False
 
 
+def _get_user_role(email: str) -> str:
+    """
+    Resolve the role for a given email from users.json or ADMIN_EMAILS override.
+    """
+    try:
+        if _is_admin_email(email):
+            return 'admin'
+        users = _load_users()
+        u = users.get((email or '').strip().lower())
+        if u:
+            return (u.get('role') or '').strip().lower()
+    except Exception:
+        pass
+    return ''
+
+
 def _load_users() -> dict:
     try:
         if os.path.exists(USERS_DB):
@@ -1548,16 +1564,19 @@ def clear_events():
 def get_contacts():
     user_email = _get_user_email_from_request()
     contacts = _load_contacts()
-    # If no user email, return empty to avoid leaking data
-    if not user_email:
+    role_hdr = (request.headers.get('X-User-Role') or '').strip().lower()
+    role_resolved = role_hdr or _get_user_role(user_email)
+    is_admin = role_resolved == 'admin'
+
+    # If no user email and not admin, return empty to avoid leaking data
+    if not user_email and not is_admin:
         return jsonify([]), 200
 
-    # Admins are identified separately; for now allow admins to see all if explicitly marked
-    role = (request.headers.get('X-User-Role') or '').lower()
-    if role == 'admin':
+    # Admin can see all contacts
+    if is_admin:
         return jsonify(contacts), 200
 
-    # Filter contacts by owner
+    # Filter contacts by owner for non-admins
     filtered = [c for c in contacts if (c.get('owner') or '').lower() == user_email]
     return jsonify(filtered), 200
 
@@ -1565,6 +1584,9 @@ def get_contacts():
 @app.route('/contacts', methods=['POST'])
 def add_contact():
     user_email = _get_user_email_from_request()
+    role_hdr = (request.headers.get('X-User-Role') or '').strip().lower()
+    role_resolved = role_hdr or _get_user_role(user_email)
+    is_admin = role_resolved == 'admin'
     data = request.get_json(silent=True) or {}
     name = (data.get('name') or '').strip()
     phone = (data.get('phone') or '').strip()
@@ -1573,7 +1595,7 @@ def add_contact():
     relationship = (data.get('relationship') or '').strip()
     priority = (data.get('priority') or 'normal').strip()
     active = bool(data.get('active', True))
-    if not user_email:
+    if not user_email and not is_admin:
         return jsonify({'ok': False, 'error': 'User email required'}), 400
     
     # At least one contact method required
@@ -1592,7 +1614,7 @@ def add_contact():
         'relationship': relationship,
         'priority': priority,
         'active': active,
-        'owner': user_email
+        'owner': user_email or ''
     }
     contacts.append(new_c)
     _save_contacts(contacts)
@@ -1602,6 +1624,9 @@ def add_contact():
 @app.route('/contacts/<cid>', methods=['PUT'])
 def update_contact(cid: str):
     user_email = _get_user_email_from_request()
+    role_hdr = (request.headers.get('X-User-Role') or '').strip().lower()
+    role_resolved = role_hdr or _get_user_role(user_email)
+    is_admin = role_resolved == 'admin'
     data = request.get_json(silent=True) or {}
     contacts = _load_contacts()
     
@@ -1612,7 +1637,7 @@ def update_contact(cid: str):
         index = int(cid)
         if 0 <= index < len(contacts):
             c = contacts[index]
-            if user_email and (c.get('owner') or '').lower() != user_email:
+            if not is_admin and user_email and (c.get('owner') or '').lower() != user_email:
                 return jsonify({'ok': False, 'error': 'Forbidden'}), 403
             if 'name' in data: c['name'] = (data['name'] or '').strip()
             if 'phone' in data: c['phone'] = (data['phone'] or '').strip()
@@ -1628,7 +1653,7 @@ def update_contact(cid: str):
         # Try as UUID
         for c in contacts:
             if c.get('id') == cid:
-                if user_email and (c.get('owner') or '').lower() != user_email:
+                if not is_admin and user_email and (c.get('owner') or '').lower() != user_email:
                     return jsonify({'ok': False, 'error': 'Forbidden'}), 403
                 if 'name' in data: c['name'] = (data['name'] or '').strip()
                 if 'phone' in data: c['phone'] = (data['phone'] or '').strip()
@@ -1651,6 +1676,9 @@ def update_contact(cid: str):
 @app.route('/contacts/<cid>', methods=['DELETE'])
 def delete_contact(cid: str):
     user_email = _get_user_email_from_request()
+    role_hdr = (request.headers.get('X-User-Role') or '').strip().lower()
+    role_resolved = role_hdr or _get_user_role(user_email)
+    is_admin = role_resolved == 'admin'
     contacts = _load_contacts()
     
     # Support both UUID and index-based deletion (for backward compatibility)
@@ -1659,7 +1687,7 @@ def delete_contact(cid: str):
         # Try as index first (for old admin.html compatibility)
         index = int(cid)
         if 0 <= index < len(contacts):
-            if user_email and (contacts[index].get('owner') or '').lower() != user_email:
+            if (not is_admin) and user_email and (contacts[index].get('owner') or '').lower() != user_email:
                 return jsonify({'ok': False, 'error': 'Forbidden'}), 403
             new_list = contacts[:index] + contacts[index+1:]
     except (ValueError, TypeError):
@@ -1668,7 +1696,7 @@ def delete_contact(cid: str):
         found = False
         for c in contacts:
             if c.get('id') == cid:
-                if user_email and (c.get('owner') or '').lower() != user_email:
+                if (not is_admin) and user_email and (c.get('owner') or '').lower() != user_email:
                     return jsonify({'ok': False, 'error': 'Forbidden'}), 403
                 found = True
                 continue
