@@ -24,6 +24,18 @@ function updateTimestamps() {
 updateTimestamps();
 setInterval(updateTimestamps, 1000);
 
+// Auth fetch helper to include user context
+function authFetch(url, options = {}) {
+  const token = localStorage.getItem('token');
+  const email = localStorage.getItem('email') || '';
+  const role = (localStorage.getItem('role') || '').toLowerCase();
+  const headers = options.headers ? { ...options.headers } : {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (email) headers['X-User-Email'] = email;
+  if (role) headers['X-User-Role'] = role;
+  return fetch(url, { ...options, headers });
+}
+
 // Animate button icon on hover - toggled start/done
 const startBtn = document.getElementById('startMonitoringBtn');
 if (startBtn) {
@@ -1452,7 +1464,7 @@ function renderContacts(contacts) {
     tr.innerHTML = `
       <td class="py-2 pr-4">${c.name || ''}</td>
       <td class="py-2 pr-4">${c.phone || ''}</td>
-      <td class="py-2 pr-4"><input type="checkbox" ${c.notify ? 'checked' : ''} data-action="toggle" data-id="${c.id}"></td>
+      <td class="py-2 pr-4"><input type="checkbox" ${c.active || c.notify ? 'checked' : ''} data-action="toggle" data-id="${c.id}"></td>
       <td class="py-2 pr-4 text-right">
         <button data-action="edit" data-id="${c.id}" class="px-2 py-1 text-xs bg-gray-200 rounded">Edit</button>
         <button data-action="delete" data-id="${c.id}" class="ml-2 px-2 py-1 text-xs bg-red-600 text-white rounded">Delete</button>
@@ -1464,7 +1476,7 @@ function renderContacts(contacts) {
 async function loadContacts() {
   if (!contactsTableBody) return;
   try {
-    const res = await fetch('/contacts');
+    const res = await authFetch('/contacts');
     const data = await res.json();
     if (Array.isArray(data)) renderContacts(data);
   } catch (e) { }
@@ -1475,7 +1487,7 @@ function openContactModal(contact) {
   if (contactModalTitle) contactModalTitle.textContent = editingContactId ? 'Edit Contact' : 'Add Contact';
   if (contactName) contactName.value = contact ? (contact.name || '') : '';
   if (contactPhone) contactPhone.value = contact ? (contact.phone || '') : '';
-  if (contactNotify) contactNotify.checked = !!(contact && contact.notify);
+  if (contactNotify) contactNotify.checked = !!(contact && (contact.active || contact.notify));
   if (contactModal) contactModal.classList.remove('hidden');
 }
 function closeContactModal() {
@@ -1488,15 +1500,15 @@ contactSave?.addEventListener('click', async () => {
   const payload = {
     name: contactName ? contactName.value.trim() : '',
     phone: contactPhone ? contactPhone.value.trim() : '',
-    notify: contactNotify ? !!contactNotify.checked : false,
+    active: contactNotify ? !!contactNotify.checked : false,
   };
   if (!payload.name || !payload.phone) { alert('Enter name and phone'); return; }
   try {
     let res;
     if (editingContactId) {
-      res = await fetch(`/contacts/${editingContactId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      res = await authFetch(`/contacts/${editingContactId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     } else {
-      res = await fetch('/contacts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      res = await authFetch('/contacts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     }
     const data = await res.json();
     if (!res.ok || !data.ok) throw new Error('Failed');
@@ -1515,7 +1527,7 @@ contactsTableBody?.addEventListener('click', async (e) => {
   if (action === 'edit' && id) {
     // fetch current to populate
     try {
-      const res = await fetch('/contacts');
+      const res = await authFetch('/contacts');
       const all = await res.json();
       const c = Array.isArray(all) ? all.find(x => x.id === id) : null;
       if (c) openContactModal(c);
@@ -1523,7 +1535,7 @@ contactsTableBody?.addEventListener('click', async (e) => {
   } else if (action === 'delete' && id) {
     if (!confirm('Delete this contact?')) return;
     try {
-      const res = await fetch(`/contacts/${id}`, { method: 'DELETE' });
+      const res = await authFetch(`/contacts/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error('Failed');
       loadContacts();
@@ -1537,7 +1549,7 @@ contactsTableBody?.addEventListener('change', async (e) => {
   if (t.getAttribute('data-action') === 'toggle') {
     const id = t.getAttribute('data-id');
     try {
-      await fetch(`/contacts/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ notify: !!t.checked }) });
+      await authFetch(`/contacts/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: !!t.checked }) });
     } catch (e) { /* noop */ }
   }
 });

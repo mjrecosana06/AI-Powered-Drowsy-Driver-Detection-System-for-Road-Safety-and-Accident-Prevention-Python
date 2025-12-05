@@ -6,7 +6,19 @@
     "email": "reeves7735@gmail.com",
     "telegram": "1515235729",
     "relationship": "kuya",
+    "priority": "low",
+    "active": false,
+    "owner": "reeves7735@gmail.com"
+  },
+  {
+    "id": "08fd15ac-d379-486c-a661-f1d86a7a3772",
+    "name": "MJ Recosana",
+    "phone": "+639762585812",
+    "email": "mjrecosana06@gmail.com",
+    "telegram": "5489006054",
+    "relationship": "Kuys",
     "priority": "high",
-    "active": false
+    "active": true,
+    "owner": "mjrecosana06@gmail.com"
   }
 ]
