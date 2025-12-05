@@ -923,18 +923,22 @@ apply_global_settings_to_monitor(monitor)
 def get_or_create_driver_monitor(email: str) -> DrowsinessMonitor:
     """Get or create a DrowsinessMonitor instance for a specific driver."""
     with DRIVER_MONITORS_LOCK:
-        if email not in DRIVER_MONITORS:
+        # Normalize email to lowercase for consistency
+        email_normalized = (email or '').strip().lower()
+        if email_normalized not in DRIVER_MONITORS:
             new_monitor = DrowsinessMonitor()
             apply_global_settings_to_monitor(new_monitor)
-            # Store user email in monitor for Arduino commands
-            new_monitor._user_email = email
-            DRIVER_MONITORS[email] = new_monitor
-        return DRIVER_MONITORS[email]
+            # Store user email in monitor for Arduino commands (normalized)
+            new_monitor._user_email = email_normalized
+            DRIVER_MONITORS[email_normalized] = new_monitor
+        return DRIVER_MONITORS[email_normalized]
 
 def get_driver_monitor(email: str) -> DrowsinessMonitor | None:
     """Get a driver's monitor if it exists."""
     with DRIVER_MONITORS_LOCK:
-        return DRIVER_MONITORS.get(email)
+        # Normalize email to lowercase for consistency
+        email_normalized = (email or '').strip().lower()
+        return DRIVER_MONITORS.get(email_normalized)
 
 def cleanup_inactive_monitors():
     """Cleanup monitors for drivers who have been offline for too long."""
@@ -1071,9 +1075,10 @@ def trigger_sms_notifications(event: dict, driver_email: str = None) -> int:  # 
     if not client or not from_number:
         return 0
     all_contacts = _load_contacts()
-    # Filter contacts by driver email (owner field)
+    # Filter contacts by driver email (owner field) - case-insensitive comparison
     if driver_email:
-        contacts = [c for c in all_contacts if c.get('owner') == driver_email and c.get('active', True)]
+        driver_email_lower = (driver_email or '').strip().lower()
+        contacts = [c for c in all_contacts if (c.get('owner') or '').strip().lower() == driver_email_lower and c.get('active', True)]
     else:
         contacts = [c for c in all_contacts if c.get('active', True)]
     # Include Google Maps link if we have a recent client-provided location
@@ -1141,9 +1146,10 @@ def send_email_notification(to_email: str, subject: str, message: str) -> bool:
 def trigger_email_notifications(event: dict, driver_email: str = None) -> int:
     """Trigger email notifications to all active contacts with email, filtered by driver email"""
     all_contacts = _load_contacts()
-    # Filter contacts by driver email (owner field)
+    # Filter contacts by driver email (owner field) - case-insensitive comparison
     if driver_email:
-        contacts = [c for c in all_contacts if c.get('owner') == driver_email and c.get('active', True)]
+        driver_email_lower = (driver_email or '').strip().lower()
+        contacts = [c for c in all_contacts if (c.get('owner') or '').strip().lower() == driver_email_lower and c.get('active', True)]
     else:
         contacts = [c for c in all_contacts if c.get('active', True)]
     
@@ -1221,9 +1227,10 @@ def send_telegram_notification(chat_id: str, message: str) -> bool:
 def trigger_telegram_notifications(event: dict, driver_email: str = None) -> int:
     """Trigger Telegram notifications to all active contacts with Telegram, filtered by driver email"""
     all_contacts = _load_contacts()
-    # Filter contacts by driver email (owner field)
+    # Filter contacts by driver email (owner field) - case-insensitive comparison
     if driver_email:
-        contacts = [c for c in all_contacts if c.get('owner') == driver_email and c.get('active', True)]
+        driver_email_lower = (driver_email or '').strip().lower()
+        contacts = [c for c in all_contacts if (c.get('owner') or '').strip().lower() == driver_email_lower and c.get('active', True)]
     else:
         contacts = [c for c in all_contacts if c.get('active', True)]
     
@@ -1651,7 +1658,7 @@ def add_contact():
         'relationship': relationship,
         'priority': priority,
         'active': active,
-        'owner': user_email or ''
+        'owner': (user_email or '').strip().lower()  # Normalize to lowercase for consistency
     }
     contacts.append(new_c)
     _save_contacts(contacts)
