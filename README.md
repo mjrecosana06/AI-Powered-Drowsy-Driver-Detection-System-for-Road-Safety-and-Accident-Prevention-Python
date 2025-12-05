@@ -482,6 +482,53 @@ cd "/path/to/AI-Drowsy-Driver-Detection" && ./start_cloudflare.sh
 
 ---
 
+## 🔀 Instance-Based Isolation (Multi-School/User Support)
+
+This system supports **instance-based isolation**, allowing multiple users or schools to run separate instances without data conflicts. This is perfect for capstone projects where different students need independent versions.
+
+### Quick Setup
+
+**Option 1: Configuration File (Recommended)**
+1. Copy the example config: `cp instance_config.json.example instance_config.json`
+2. Edit `instance_config.json` and set your unique instance ID:
+   ```json
+   {
+     "instance_id": "your_school_name",
+     "description": "Your school or project identifier"
+   }
+   ```
+3. Run the application - it will automatically use your instance ID.
+
+**Option 2: Environment Variable**
+```bash
+export INSTANCE_ID=your_instance_id
+python app.py
+```
+
+### Migration from Existing Installation
+
+If you already have data files (`users.json`, `contacts.json`, `events.json`), use the migration script:
+
+```bash
+python migrate_to_instance.py your_instance_id
+```
+
+This will:
+- Create instance-specific data files (`users_{instance_id}.json`, etc.)
+- Create backup copies of your original files
+- Generate `instance_config.json` automatically
+
+### Benefits
+
+- ✅ **Complete Data Isolation** - Each instance has separate users, contacts, and events
+- ✅ **No Conflicts** - Multiple users can run their own versions independently
+- ✅ **Easy Migration** - Simple script to convert existing data
+- ✅ **Backward Compatible** - Existing installations continue to work
+
+📖 **For detailed setup instructions, see [INSTANCE_SETUP.md](INSTANCE_SETUP.md)**
+
+---
+
 ## 📖 Usage Guide
 
 ### For Drivers

@@ -29,6 +29,26 @@ def get_timestamp_iso() -> str:
     return datetime.utcnow().isoformat() + 'Z'
 
 
+# Instance-based isolation: Each school/instance gets separate data files
+# Set INSTANCE_ID environment variable or create instance_config.json
+INSTANCE_ID = os.getenv('INSTANCE_ID', 'default')
+try:
+    if os.path.exists('instance_config.json'):
+        with open('instance_config.json', 'r', encoding='utf-8') as f:
+            config = json.load(f)
+            INSTANCE_ID = config.get('instance_id', INSTANCE_ID)
+except Exception:
+    pass
+
+# Sanitize instance ID for filename safety
+INSTANCE_ID = ''.join(c for c in INSTANCE_ID if c.isalnum() or c in ('-', '_')) or 'default'
+
+# Instance-specific data files (defined early so classes can use them)
+USERS_DB = f'users_{INSTANCE_ID}.json'
+CONTACTS_DB = f'contacts_{INSTANCE_ID}.json'
+EVENTS_DB = f'events_{INSTANCE_ID}.json'
+
+
 class DrowsinessMonitor:
     def __init__(self):
         self.capture_index = int(os.getenv('CAMERA_INDEX', '0'))
@@ -152,7 +172,7 @@ class DrowsinessMonitor:
             self.events.append(event)
             # Persist to disk best-effort
             try:
-                with open('events.json', 'w', encoding='utf-8') as f:
+                with open(EVENTS_DB, 'w', encoding='utf-8') as f:
                     json.dump(self.events, f, indent=2)
             except Exception:
                 pass
@@ -236,8 +256,8 @@ class DrowsinessMonitor:
         # Load events from disk (best-effort) on first start
         if not self.events:
             try:
-                if os.path.exists('events.json'):
-                    with open('events.json', 'r', encoding='utf-8') as f:
+                if os.path.exists(EVENTS_DB):
+                    with open(EVENTS_DB, 'r', encoding='utf-8') as f:
                         self.events = json.load(f)
             except Exception:
                 self.events = []
@@ -943,8 +963,7 @@ _cleanup_thread.start()
 # ---- Simple token auth (demo) ----
 app.secret_key = os.getenv('FLASK_SECRET', 'dev-secret-change-me')
 serializer = URLSafeTimedSerializer(app.secret_key)
-USERS_DB = 'users.json'
-CONTACTS_DB = 'contacts.json'
+# Note: Instance config and data file paths are defined earlier in the file
 
 # Admin emails override (comma-separated), ensures listed users are admins
 ADMIN_EMAILS = set()
@@ -1552,8 +1571,8 @@ def clear_events():
     with monitor.events_lock:
         monitor.events = []
         try:
-            if os.path.exists('events.json'):
-                os.remove('events.json')
+            if os.path.exists(EVENTS_DB):
+                os.remove(EVENTS_DB)
         except Exception:
             pass
     return jsonify({'ok': True}), 200
